@@ -121,24 +121,6 @@ const RFPDetail = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Download Summary
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => downloadSummary("pdf")} className="gap-2">
-                  <File className="h-4 w-4 text-red-500 transition-transform group-hover:scale-110" />
-                  <span>PDF</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => downloadSummary("doc")} className="gap-2">
-                  <FileText className="h-4 w-4 text-blue-600 transition-transform group-hover:scale-110" />
-                  <span>DOC</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
             <Button
               variant="ghost"
               size="icon"
@@ -205,6 +187,31 @@ const RFPDetail = () => {
         showCompare={true}
         variant="detail"
       />
+
+      {/* Floating Download Icon (top-right) with options */}
+      <div className="fixed bottom-24 right-6 z-[940]">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label="Download summary"
+              title="Download Summary"
+              className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:brightness-110 transition-all border border-primary/30 flex items-center justify-center"
+            >
+              <Download className="h-6 w-6" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="mr-2">
+            <DropdownMenuItem onClick={() => downloadSummary("pdf")} className="gap-2 cursor-pointer">
+              <File className="h-4 w-4 text-red-500" />
+              <span>PDF (.pdf)</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => downloadSummary("doc")} className="gap-2 cursor-pointer">
+              <FileText className="h-4 w-4 text-blue-600" />
+              <span>DOC (.doc)</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 };

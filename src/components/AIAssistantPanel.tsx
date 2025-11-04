@@ -44,6 +44,14 @@ const AIAssistantPanel = ({
     },
   ]);
 
+  // Small onboarding nudge near the floating button
+  const [showNudge, setShowNudge] = useState<boolean>(false);
+  useEffect(() => {
+    setShowNudge(true);
+    const t = setTimeout(() => setShowNudge(false), 4000);
+    return () => clearTimeout(t);
+  }, []);
+
   // Initialize messages based on props
   useEffect(() => {
     if (currentProjectId && projects.length > 0) {
@@ -145,6 +153,7 @@ const AIAssistantPanel = ({
             : "0 4px 12px rgba(34, 197, 94, 0.4)"
         }}
         onClick={() => setIsOpen(!isOpen)}
+        title={isOpen ? "Close AI Assistant" : "Open AI Assistant"}
       >
         {isOpen ? (
           <X className="h-6 w-6" />
@@ -308,6 +317,16 @@ const AIAssistantPanel = ({
             </div>
           </div>
         </>
+      )}
+
+      {/* Nudge tooltip when closed */}
+      {!isOpen && showNudge && (
+        <div className="fixed bottom-8 right-24 z-[945]">
+          <div className="relative px-3 py-2 rounded-lg bg-card border border-border shadow-md text-sm">
+            <span className="text-foreground">Hi! Ask about this RFP</span>
+            <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-card border border-border rotate-45" />
+          </div>
+        </div>
       )}
     </>
   );

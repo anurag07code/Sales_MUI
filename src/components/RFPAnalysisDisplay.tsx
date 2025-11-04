@@ -1,8 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Accordion,
@@ -31,6 +31,8 @@ import {
   Sparkles,
   Zap,
   Layers,
+  CheckSquare,
+  RefreshCw,
   Network,
   Server,
   Database,
@@ -41,11 +43,13 @@ import {
   X,
   Plus,
   Trash2,
+  Search,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { RFPEstimation } from "@/lib/types/rfp";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface RFPAnalysisDisplayProps {
   data: RFPEstimation;
@@ -64,10 +68,19 @@ const RFPAnalysisDisplay = ({ data, fileName }: RFPAnalysisDisplayProps) => {
     "purpose" | "scopeOfWork" | "paymentTerms" | "keyRequirements" | null
   >(null);
   const [sectionDraft, setSectionDraft] = useState<string>("");
-  // Software & Tools selection state
-  const allToolNames = Object.keys(localData.softwareAndTools || {});
-  const [selectedTools, setSelectedTools] = useState<string[]>(allToolNames);
-  const [toolToAdd, setToolToAdd] = useState<string>("");
+  // Software & Tools inline edit state
+  const [editingToolKey, setEditingToolKey] = useState<string | null>(null);
+  const [editToolName, setEditToolName] = useState<string>("");
+  const [editToolDesc, setEditToolDesc] = useState<string>("");
+  // Inline catalog
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [catalogQuery, setCatalogQuery] = useState("");
+  const [catalogCloud, setCatalogCloud] = useState<"all"|"AWS"|"Azure"|"GCP">("all");
+  const [catalogCats, setCatalogCats] = useState<string[]>([]);
+  // Suggested panel removed; only Add Tools is used
+  const [regeneratedTick, setRegeneratedTick] = useState<number>(0);
+  const [chipsVisible, setChipsVisible] = useState(false);
+  const panelsOpen = catalogOpen;
 
   const openSectionEditor = (
     section: "purpose" | "scopeOfWork" | "paymentTerms" | "keyRequirements",
@@ -146,6 +159,33 @@ const RFPAnalysisDisplay = ({ data, fileName }: RFPAnalysisDisplayProps) => {
     
     return sections.length > 0 ? sections : [{ type: 'paragraph' as const, content: cleanText }];
   };
+
+  const renderSelectedToolsBox = () => (
+    <Card className="p-4 mb-4 border-2 border-primary/20">
+      <h4 className="font-bold mb-3 text-primary">Selected Tools</h4>
+      {Object.keys(localData.softwareAndTools || {}).length === 0 ? (
+        <p className="text-sm text-muted-foreground">No tools selected yet.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {Object.entries(localData.softwareAndTools).map(([tool, description]) => (
+            <div key={tool} className="p-3 rounded-lg bg-card border border-primary/20 flex items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold text-sm text-primary">{tool}</p>
+                <p className="text-xs text-muted-foreground">{description}</p>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => {
+                setLocalData((prev) => {
+                  const current = { ...(prev.softwareAndTools as any) };
+                  delete current[tool];
+                  return { ...prev, softwareAndTools: current } as any;
+                });
+              }}>Remove</Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
@@ -857,72 +897,152 @@ const RFPAnalysisDisplay = ({ data, fileName }: RFPAnalysisDisplayProps) => {
                   </div>
                   <span className="font-bold text-left text-lg">Software & Tools</span>
                   <span className="ml-auto text-xs text-primary font-semibold bg-primary/10 px-2 py-1 rounded-full">
-                    {selectedTools.length} selected
+                    {Object.keys(localData.softwareAndTools).length} tools
                   </span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
-                {/* Choose and add preferred tools */}
-                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 pt-2 pb-4">
-                  <Select value={toolToAdd || "none"} onValueChange={(v) => setToolToAdd(v === "none" ? "" : v)}>
-                    <SelectTrigger className="w-full md:w-80">
-                      <SelectValue placeholder="Choose a tool to add" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Choose tool</SelectItem>
-                      {Object.keys(localData.softwareAndTools || {}).map((name) => (
-                        <SelectItem key={name} value={name} disabled={selectedTools.includes(name)}>
-                          {name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {/* Actions Row */}
+                <div className="flex flex-wrap items-center gap-2 mb-4">
                   <Button
                     size="sm"
-                    className="gap-1"
+                    variant="outline"
+                    className="gap-2 h-9 px-4"
                     onClick={() => {
-                      if (!toolToAdd) return;
-                      if (!selectedTools.includes(toolToAdd)) {
-                        setSelectedTools((prev) => [...prev, toolToAdd]);
-                        setToolToAdd("");
-                      }
+                      setChipsVisible(false);
+                      setCatalogOpen(v => !v);
                     }}
                   >
-                    <Plus className="h-4 w-4" /> Add
+                    <CheckSquare className="h-4 w-4" /> Add Tools
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="gap-2 h-9 px-4"
+                    onClick={() => {
+                      setChipsVisible(false);
+                      setCatalogOpen(false);
+                      setRegeneratedTick(Date.now());
+                      toast.success("Regenerated based on selected tools");
+                    }}
+                  >
+                    <RefreshCw className="h-4 w-4" /> Regenerate
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {selectedTools.map((tool) => {
-                    const description = (localData.softwareAndTools as any)[tool];
-                    return (
-                    <div
-                      key={tool}
-                      className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/20 hover:border-primary/40 hover:shadow-md transition-all group"
-                    >
-                      <div className="flex items-start gap-3">
-                          <div className="mt-0.5 p-1.5 rounded-lg bg-primary/20 group-hover:bg-primary/30 transition-colors">
-                            <Code className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="font-bold text-sm mb-1.5 text-primary">{tool}</p>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  className="text-xs px-2 py-1 rounded border border-destructive/30 text-destructive hover:bg-destructive/10"
-                                  onClick={() => setSelectedTools((prev) => prev.filter((t) => t !== tool))}
-                                >
-                                  <span className="inline-flex items-center gap-1"><Trash2 className="h-3 w-3" /> Remove</span>
-                                </button>
-                              </div>
+                {/* Partitioned layout: left selected placeholder, right add tools */}
+                {catalogOpen ? (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>{renderSelectedToolsBox()}</div>
+                    <div>
+                      {/* Add Tools */}
+                      {catalogOpen && (
+                        <div className="mb-4 p-3 border border-primary/20 rounded-lg bg-card space-y-3">
+                          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+                            <div className="md:w-auto">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-9 px-4 gap-2"
+                                onClick={() => {
+                                  const name = window.prompt("Add tool name");
+                                  if (!name) return;
+                                  const desc = window.prompt("Short description (optional)") || "";
+                                  setLocalData(prev => ({
+                                    ...prev,
+                                    softwareAndTools: {
+                                      ...(prev.softwareAndTools || {}),
+                                      [name]: desc,
+                                    },
+                                  }) as any);
+                                  toast.success("Tool added");
+                                }}
+                              >
+                                <Plus className="h-4 w-4" /> Add Tool
+                              </Button>
                             </div>
-                            <p className="text-xs text-foreground leading-relaxed">{description}</p>
+                            <div className="relative md:w-1/2">
+                              <Search className="h-4 w-4 absolute left-2 top-3 text-muted-foreground" />
+                              <Input className="pl-8" placeholder="Search tools..." value={catalogQuery} onChange={e=>setCatalogQuery(e.target.value)} />
+                            </div>
+                          </div>
+
+                          {(() => {
+                            const CATALOG = [
+                              { id: "aws-kms", name: "AWS KMS", cloud: "AWS", categories: ["Security"], description: "Managed encryption key service." },
+                              { id: "azure-keyvault", name: "Azure Key Vault", cloud: "Azure", categories: ["Security"], description: "Secrets and key management." },
+                              { id: "gcp-kms", name: "GCP KMS", cloud: "GCP", categories: ["Security"], description: "Key management on GCP." },
+                              { id: "elk", name: "ELK Stack", categories: ["Data","Monitoring"], description: "Elasticsearch, Logstash, Kibana." },
+                              { id: "splunk", name: "Splunk", categories: ["Monitoring","Security"], description: "Observability & SIEM." },
+                              { id: "docker", name: "Docker", categories: ["DevOps"], description: "Container runtime." },
+                              { id: "k8s", name: "Kubernetes", categories: ["DevOps"], description: "Containers orchestration." },
+                              { id: "prom", name: "Prometheus", categories: ["Monitoring"], description: "Metrics monitoring." },
+                              { id: "grafana", name: "Grafana", categories: ["Monitoring"], description: "Dashboards & viz." },
+                              { id: "selenium", name: "Selenium", categories: ["Testing"], description: "Web UI testing." },
+                            ];
+
+                            const term = catalogQuery.trim().toLowerCase();
+                            const filtered = CATALOG.filter(t => {
+                              if (catalogCloud !== "all" && (t.cloud as any) !== catalogCloud) return false;
+                              if (catalogCats.length && !catalogCats.every(c => t.categories.includes(c))) return false;
+                              if (term && !(t.name+" "+t.description).toLowerCase().includes(term)) return false;
+                              return true;
+                            });
+
+                            const selectedSet = new Set(Object.keys(localData.softwareAndTools || {}));
+
+                            if (filtered.length === 0) {
+                              return (
+                                <div className="p-6 border rounded-lg text-center bg-muted/20 text-sm text-muted-foreground">
+                                  All matching tools are already added. Try different filters.
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {filtered.map(item => (
+                                  <div key={item.id} className={`p-4 rounded-xl border border-border bg-card hover:shadow-md transition-all`}>
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                          {item.cloud && <Badge variant="outline">{item.cloud}</Badge>}
+                                          {item.categories.map(c => <Badge key={c} variant="secondary">{c}</Badge>)}
+                                        </div>
+                                        <div className="font-semibold">{item.name}</div>
+                                        <div className="text-xs text-muted-foreground">{item.description}</div>
+                                      </div>
+                                      {selectedSet.has(item.name) ? (
+                                        <Button size="sm" variant="secondary" disabled>Added</Button>
+                                      ) : (
+                                        <Button size="sm" variant="outline" onClick={()=>{
+                                          setLocalData(prev=>({
+                                            ...prev,
+                                            softwareAndTools: { ...(prev.softwareAndTools||{}), [item.name]: item.description } as any
+                                          }));
+                                        }}>
+                                          Add
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
+
+                          <div className="flex justify-end">
+                            <Button size="sm" onClick={()=>setCatalogOpen(false)}>Done</Button>
                           </div>
                         </div>
+                      )}
                     </div>
-                    );
-                  })}
-                </div>
+                  </div>
+                ) : (
+                  renderSelectedToolsBox()
+                )}
+
+                {/* Removed old flat selected list per new partitioned design */}
               </AccordionContent>
             </Card>
           </AccordionItem>
@@ -1106,36 +1226,7 @@ const RFPAnalysisDisplay = ({ data, fileName }: RFPAnalysisDisplayProps) => {
           </AccordionItem>
         )}
 
-        {/* Top Keywords */}
-        {data.topKeyWords && data.topKeyWords.length > 0 && (
-          <AccordionItem value="keywords" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <Target className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Top Keywords</span>
-                  <span className="ml-auto text-xs text-primary font-semibold bg-primary/10 px-2 py-1 rounded-full">
-                    {data.topKeyWords.length} keywords
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="flex flex-wrap gap-2.5 pt-2">
-                  {data.topKeyWords.map((keyword, index) => (
-                    <Badge
-                      key={index}
-                      className="bg-primary text-primary-foreground border border-primary/40 hover:border-primary/60 hover:shadow-md px-3 py-1.5 text-sm font-semibold transition-all hover:scale-105"
-                    >
-                      {keyword}
-                    </Badge>
-                  ))}
-                </div>
-              </AccordionContent>
-            </Card>
-          </AccordionItem>
-        )}
+        {/* Top Keywords section removed per request */}
       </Accordion>
     </div>
   );

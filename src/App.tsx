@@ -22,26 +22,26 @@ const AppContent = () => {
       {/* TopNavigation on all pages */}
       <TopNavigation />
       <main className="relative pt-16 md:pt-20">
-        {/* Background Animation - Appears on all pages */}
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <AnimatedDataMesh />
-        </div>
-        
-        {/* Page Content */}
-        <div className="relative z-10">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/brand-analysis" element={<BrandAnalysis />} />
-                <Route path="/company/:id" element={<CompanyDetail />} />
-                <Route path="/rfp-lifecycle" element={<RFPLifecycle />} />
+              {/* Background Animation - Appears on all pages */}
+              <div className="fixed inset-0 z-0 pointer-events-none">
+                <AnimatedDataMesh />
+              </div>
+              
+              {/* Page Content */}
+              <div className="relative z-10">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/brand-analysis" element={<BrandAnalysis />} />
+                  <Route path="/company/:id" element={<CompanyDetail />} />
+                  <Route path="/rfp-lifecycle" element={<RFPLifecycle />} />
                 <Route path="/rfp-lifecycle/:id" element={<RFPDetail />} />
-                <Route path="/contracts" element={<Contracts />} />
-                <Route path="/deals" element={<Deals />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-        </div>
-      </main>
-    </div>
+                  <Route path="/contracts" element={<Contracts />} />
+                  <Route path="/deals" element={<Deals />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+            </main>
+          </div>
   );
 };
 

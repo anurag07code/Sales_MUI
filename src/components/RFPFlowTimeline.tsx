@@ -20,9 +20,9 @@ const RFPFlowTimeline = ({ blocks }: RFPFlowTimelineProps) => {
   const getStatusBg = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-success";
+        return "bg-primary/20"; // pale blue for completed
       case "in-progress":
-        return "bg-primary glow-primary";
+        return "bg-primary glow-primary"; // solid blue for processing
       case "pending":
         return "bg-muted";
       default:
@@ -33,16 +33,23 @@ const RFPFlowTimeline = ({ blocks }: RFPFlowTimelineProps) => {
   const getIconColor = (status: string) => {
     switch (status) {
       case "completed":
+        return "text-primary"; // blue icon on pale blue
       case "in-progress":
-        return "text-white"; // strong contrast on colored circles
+        return "text-white"; // white on solid blue
       default:
-        return "text-foreground"; // solid contrast in light mode
+        return "text-foreground"; // solid contrast in both themes
     }
   };
 
   const getRingClass = (status: string) => {
     if (status === "pending") {
-      return "ring-1 ring-border"; // add subtle border for light mode contrast
+      return "ring-2 ring-border"; // subtle outline for visibility
+    }
+    if (status === "completed") {
+      return "ring-2 ring-primary/40"; // soft blue outline on pale blue
+    }
+    if (status === "in-progress") {
+      return "ring-2 ring-primary/40"; // soft blue outline
     }
     return "";
   };
@@ -50,9 +57,9 @@ const RFPFlowTimeline = ({ blocks }: RFPFlowTimelineProps) => {
   const getConnectorColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-success";
+        return "bg-primary/40"; // pale blue connector
       case "in-progress":
-        return "bg-primary";
+        return "bg-primary"; // solid blue
       default:
         return "bg-border";
     }
@@ -125,7 +132,7 @@ const RFPFlowTimeline = ({ blocks }: RFPFlowTimelineProps) => {
                     {/* Card with Name and Status */}
                     <Card className={`mt-3 sm:mt-4 p-2 sm:p-3 w-full text-center gradient-card border-t-2 transition-all group-hover:shadow-elegant ${
                       block.status === "completed"
-                        ? "border-t-success"
+                        ? "border-t-primary/60"
                         : block.status === "in-progress"
                         ? "border-t-primary"
                         : "border-t-border"
@@ -133,7 +140,7 @@ const RFPFlowTimeline = ({ blocks }: RFPFlowTimelineProps) => {
                       <p className="font-medium text-[10px] sm:text-xs mb-1 line-clamp-2 leading-tight">{block.name}</p>
                       <p className={`text-[9px] sm:text-[10px] capitalize ${
                         block.status === "completed"
-                          ? "text-success"
+                          ? "text-primary"
                           : block.status === "in-progress"
                           ? "text-primary font-semibold"
                           : "text-muted-foreground"

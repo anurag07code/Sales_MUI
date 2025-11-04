@@ -118,8 +118,8 @@ const Index = () => {
     <div className="relative min-h-screen overflow-hidden bg-background">
       {/* Hero Section - Asymmetric Layout */}
       <section className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
-        {/* Animated Background Elements - Subtle overlay */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 -left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/3 rounded-full blur-3xl" />
@@ -130,16 +130,16 @@ const Index = () => {
             {/* Left Side - Content */}
             <div className="space-y-8">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-primary/20 bg-primary/5 backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-sm">
-                <Sparkle className="w-4 h-4 text-primary transition-transform duration-300 hover:scale-110" />
-                <span className="text-sm font-medium text-primary transition-colors duration-300 hover:text-primary/80">AI-Powered Sales Intelligence Platform</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all duration-300 hover:border-primary hover:shadow-sm" style={{ borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.05)' }}>
+                <Sparkle className="w-4 h-4 transition-transform duration-300 hover:scale-110" style={{ color: '#3B82F6' }} />
+                <span className="text-sm font-medium transition-colors duration-300 hover:text-primary" style={{ color: '#3B82F6' }}>AI-Powered Sales Intelligence Platform</span>
               </div>
 
               {/* Main Headline */}
               <div className="space-y-4">
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
                   <span className="block text-foreground">Transform Your</span>
-                  <span className="block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  <span className="block bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #2563EB)' }}>
                     Sales Pipeline
                   </span>
                   <span className="block text-foreground">with Intelligence</span>
@@ -154,7 +154,12 @@ const Index = () => {
               <div className="pt-2">
                 <Button
                   size="lg"
-                  className="group relative overflow-hidden bg-primary text-primary-foreground hover:bg-primary/90 text-base md:text-lg px-8 py-6 h-auto rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                  className="group relative overflow-hidden text-base md:text-lg px-8 py-6 h-auto rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:brightness-110"
+                  style={{ 
+                    backgroundColor: '#3B82F6',
+                    color: '#FFFFFF',
+                    border: 'none'
+                  }}
                 >
                   <span className="relative z-10 flex items-center gap-2 font-semibold">
                     Get Started
@@ -245,14 +250,13 @@ const Index = () => {
             {metrics.map((metric, index) => (
               <Card
                 key={index}
-                className="text-center group cursor-pointer p-6 rounded-xl border-2 border-primary/10 bg-muted/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:-translate-y-1 hover:border-primary/50"
+                className="text-center group cursor-pointer p-6 rounded-xl border-2 border-border bg-card transition-all duration-300 hover:scale-105 hover:shadow-lg hover:-translate-y-1 hover:border-primary/40"
               >
                 <metric.icon 
-                  className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-3 text-primary transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" 
+                  className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-3 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" 
+                  style={{ color: '#3B82F6' }}
                 />
-                <div 
-                  className="text-3xl md:text-4xl font-bold mb-2 text-foreground transition-colors duration-300 group-hover:text-primary"
-                >
+                <div className="text-3xl md:text-4xl font-bold mb-2 transition-colors duration-300 group-hover:text-primary">
                   {metric.value}
                 </div>
                 <div className="text-sm text-muted-foreground">{metric.label}</div>
@@ -453,10 +457,104 @@ const Index = () => {
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join 280+ teams using SalesFirst to close more deals with AI-powered sales intelligence.
           </p>
-      </div>
+        </div>
       </section>
 
-      {/* Footer removed per request */}
+      {/* Footer */}
+      <footer className="border-t border-border bg-muted/30 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h3 className="font-bold text-foreground mb-4">Product</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <Link to="/brand-analysis" className="hover:text-foreground transition-colors inline-flex items-center gap-1">
+                    Brand Analysis
+                    <ArrowUpRight className="w-3 h-3" />
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/rfp-lifecycle" className="hover:text-foreground transition-colors inline-flex items-center gap-1">
+                    RFP Lifecycle
+                    <ArrowUpRight className="w-3 h-3" />
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contracts" className="hover:text-foreground transition-colors inline-flex items-center gap-1">
+                    Contracts
+                    <ArrowUpRight className="w-3 h-3" />
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/deals" className="hover:text-foreground transition-colors inline-flex items-center gap-1">
+                    Deals Tracker
+                    <ArrowUpRight className="w-3 h-3" />
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground mb-4">Company</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">About</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">Blog</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">Careers</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">Contact</a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground mb-4">Resources</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">Documentation</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">Support</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">API</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">Integrations</a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground mb-4">Legal</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-foreground transition-colors">Security</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold">S</span>
+              </div>
+              <span className="text-lg font-bold text-foreground">SalesFirst</span>
+            </div>
+            <p className="text-sm text-muted-foreground text-center md:text-right">
+              © 2024 SalesFirst. All rights reserved.
+            </p>
+        </div>
+      </div>
+      </footer>
     </div>
   );
 };
