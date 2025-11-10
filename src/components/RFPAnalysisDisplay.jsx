@@ -4,12 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, DollarSign, Calendar, Users, Code, FileText, Shield, Target, CheckCircle2, Clock, BarChart3, Briefcase, ArrowRight, ListChecks, Sparkles, Zap, Layers, CheckSquare, RefreshCw, Network, Server, Database, Lock, Cpu, Pencil, Check, X, Plus, Search } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 const RFPAnalysisDisplay = ({
   data,
-  fileName
+  fileName,
+  projectId
 }) => {
   // Local editable copy
   const [localData, setLocalData] = useState(data);
@@ -33,6 +36,7 @@ const RFPAnalysisDisplay = ({
   const [regeneratedTick, setRegeneratedTick] = useState(0);
   const [chipsVisible, setChipsVisible] = useState(false);
   const panelsOpen = catalogOpen;
+  const navigate = useNavigate();
   const openSectionEditor = section => {
     setEditingSection(section);
     setSectionDraft(localData[section] || "");
@@ -1039,6 +1043,22 @@ const RFPAnalysisDisplay = ({
 
         {/* Top Keywords section removed per request */}
       </Accordion>
+
+      {/* Submit Button to Move to Response Writeup */}
+      <div className="mt-6 flex justify-end">
+        <Button 
+          size="lg" 
+          className="gap-2"
+          onClick={() => {
+            if (projectId) {
+              navigate(`/rfp-lifecycle/${projectId}/response-writeup`);
+            }
+          }}
+        >
+          Submit & Continue to Response Writeup
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>;
 };
 export default RFPAnalysisDisplay;

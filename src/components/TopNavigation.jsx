@@ -25,6 +25,9 @@ const TopNavigation = () => {
     to: "/rfp-lifecycle",
     label: "RFP Lifecycle"
   }, {
+    to: "/groups",
+    label: "Groups"
+  }, {
     to: "/contracts",
     label: "Contracts"
   }, {

@@ -118,6 +118,10 @@ const RFPLifecycle = () => {
         status: "pending",
         icon: "ListChecks"
       }, {
+        name: "Response Writeup",
+        status: "pending",
+        icon: "FileText"
+      }, {
         name: "Proposal Draft",
         status: "pending",
         icon: "FileEdit"
@@ -213,6 +217,10 @@ const RFPLifecycle = () => {
                 name: "Summary Estimation",
                 status: "in-progress",
                 icon: "ListChecks"
+              }, {
+                name: "Response Writeup",
+                status: "pending",
+                icon: "FileText"
               }, {
                 name: "Proposal Draft",
                 status: "pending",

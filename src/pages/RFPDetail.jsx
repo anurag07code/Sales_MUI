@@ -106,7 +106,7 @@ const RFPDetail = () => {
 
         {/* RFP Analysis Details - Below Journey Flow */}
         <div className="mt-6">
-          {project.rfpEstimation ? <RFPAnalysisDisplay data={project.rfpEstimation} fileName={project.uploadedFileName} /> : <Card className="p-12 text-center">
+          {project.rfpEstimation ? <RFPAnalysisDisplay data={project.rfpEstimation} fileName={project.uploadedFileName} projectId={project.id} /> : <Card className="p-12 text-center">
               <p className="text-muted-foreground mb-4">RFP analysis not available yet</p>
               <p className="text-sm text-muted-foreground">
                 The analysis is being processed. Please check back later.

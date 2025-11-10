@@ -183,6 +183,10 @@ export const MOCK_RFP_PROJECTS = [{
     status: "pending",
     icon: "ListChecks"
   }, {
+    name: "Response Writeup",
+    status: "pending",
+    icon: "FileText"
+  }, {
     name: "Proposal Draft",
     status: "pending",
     icon: "FileEdit"
@@ -280,6 +284,10 @@ export const MOCK_RFP_PROJECTS = [{
     name: "Summary Estimation",
     status: "pending",
     icon: "ListChecks"
+  }, {
+    name: "Response Writeup",
+    status: "pending",
+    icon: "FileText"
   }, {
     name: "Proposal Draft",
     status: "pending",
@@ -379,6 +387,10 @@ export const MOCK_RFP_PROJECTS = [{
     status: "pending",
     icon: "ListChecks"
   }, {
+    name: "Response Writeup",
+    status: "pending",
+    icon: "FileText"
+  }, {
     name: "Proposal Draft",
     status: "pending",
     icon: "FileEdit"
@@ -424,6 +436,10 @@ export const MOCK_RFP_PROJECTS = [{
     name: "Summary Estimation",
     status: "in-progress",
     icon: "ListChecks"
+  }, {
+    name: "Response Writeup",
+    status: "pending",
+    icon: "FileText"
   }, {
     name: "Proposal Draft",
     status: "pending",
@@ -523,6 +539,10 @@ export const MOCK_RFP_SUMMARY = {
     name: "Summary Estimation",
     status: "pending",
     icon: "ListChecks"
+  }, {
+    name: "Response Writeup",
+    status: "pending",
+    icon: "FileText"
   }, {
     name: "Proposal Draft",
     status: "pending",

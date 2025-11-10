@@ -11,9 +11,12 @@ import BrandAnalysis from "./pages/BrandAnalysis";
 import CompanyDetail from "./pages/CompanyDetail";
 import RFPLifecycle from "./pages/RFPLifecycle";
 import RFPDetail from "./pages/RFPDetail";
+import ResponseWriteup from "./pages/ResponseWriteup";
+import Groups from "./pages/Groups";
 import Contracts from "./pages/Contracts";
 import Deals from "./pages/Deals";
 import NotFound from "./pages/NotFound";
+import RFPChat from "./pages/RFPChat";
 const queryClient = new QueryClient();
 const AppContent = () => {
   return <div className="min-h-screen">
@@ -33,6 +36,9 @@ const AppContent = () => {
                   <Route path="/company/:id" element={<CompanyDetail />} />
                   <Route path="/rfp-lifecycle" element={<RFPLifecycle />} />
                 <Route path="/rfp-lifecycle/:id" element={<RFPDetail />} />
+                  <Route path="/rfp-lifecycle/:id/response-writeup" element={<ResponseWriteup />} />
+                  <Route path="/rfp-chat/:id" element={<RFPChat />} />
+                  <Route path="/groups" element={<Groups />} />
                   <Route path="/contracts" element={<Contracts />} />
                   <Route path="/deals" element={<Deals />} />
                   <Route path="*" element={<NotFound />} />

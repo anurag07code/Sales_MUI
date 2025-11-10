@@ -20,6 +20,26 @@ const AIAssistantPanel = ({
     content: "Hello! I'm your AI assistant. Please select an RFP document to start chatting about it."
   }]);
 
+  // Allow other components to programmatically open the panel and target a project
+  useEffect(() => {
+    const handleOpen = (e) => {
+      const targetProjectId = e?.detail?.projectId;
+      if (targetProjectId) {
+        setSelectedProjectId(targetProjectId);
+        const project = projects.find(p => p.id === targetProjectId);
+        if (project) {
+          setMessages([{
+            role: "assistant",
+            content: `Hello! I'm your AI assistant. You're currently viewing "${project.rfpTitle}". How can I help you today?`
+          }]);
+        }
+      }
+      setIsOpen(true);
+    };
+    window.addEventListener('open-ai-assistant', handleOpen);
+    return () => window.removeEventListener('open-ai-assistant', handleOpen);
+  }, [projects]);
+
   // Small onboarding nudge near the floating button
   const [showNudge, setShowNudge] = useState(false);
   useEffect(() => {

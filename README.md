@@ -28,7 +28,7 @@ This project is built with:
 
 - **Vite** - Next-generation frontend tooling
 - **React 18** - UI library
-- **TypeScript** - Type-safe JavaScript
+- **JavaScript (ESM)** - React with JSX (no TypeScript)
 - **Tailwind CSS** - Utility-first CSS framework
 - **shadcn/ui** - High-quality React components
 - **React Router** - Client-side routing
@@ -67,18 +67,18 @@ Salesfirst/
 ├── src/
 │   ├── components/        # Reusable React components
 │   │   ├── ui/            # shadcn/ui components
-│   │   ├── AnimatedDataMesh.tsx
-│   │   ├── TopNavigation.tsx
+│   │   ├── AnimatedDataMesh.jsx
+│   │   ├── TopNavigation.jsx
 │   │   └── ...
 │   ├── pages/             # Page components
-│   │   ├── Index.tsx       # Homepage
-│   │   ├── BrandAnalysis.tsx
-│   │   ├── RFPLifecycle.tsx
-│   │   ├── Contracts.tsx
-│   │   └── Deals.tsx
+│   │   ├── Index.jsx       # Homepage
+│   │   ├── BrandAnalysis.jsx
+│   │   ├── RFPLifecycle.jsx
+│   │   ├── Contracts.jsx
+│   │   └── Deals.jsx
 │   ├── hooks/             # Custom React hooks
 │   ├── lib/                # Utilities and mock data
-│   └── App.tsx             # Main application component
+│   └── App.jsx             # Main application component
 ├── public/                 # Static assets
 └── package.json
 ```
@@ -119,15 +119,21 @@ npm run lint
 
 ## 🌐 Deployment
 
-### Via Lovable
+### Vercel (recommended)
 
-Simply open your [Lovable Project](https://lovable.dev/projects/96b09ada-99f4-490f-8e19-e0eaf9c714c2) and click on **Share → Publish**.
+This repo includes a `vercel.json`. Push to GitHub and import the repo in Vercel:
 
-### Custom Domain
+1. Go to `https://vercel.com/new`, import your repository
+2. Framework preset: Vite
+3. Build command: `vite build`
+4. Output directory: `dist`
 
-Navigate to **Project > Settings > Domains** and click **Connect Domain**.
+Environment is static (client-side). No server config needed.
 
-Read more: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Other hosts
+
+- Netlify: set build to `vite build`, publish `dist/`
+- Static hosting: run `npm run build` and upload the `dist/` folder
 
 ## 🎯 Key Pages
 
@@ -139,7 +145,7 @@ Read more: [Setting up a custom domain](https://docs.lovable.dev/features/custom
 
 ## 💡 Development Tips
 
-- Components use TypeScript for type safety
+- Components are plain React with JSX (no TypeScript)
 - Styling uses Tailwind CSS utility classes
 - Custom components extend shadcn/ui base components
 - Animation patterns use CSS transitions and transforms
