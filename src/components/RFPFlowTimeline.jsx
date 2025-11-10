@@ -1,10 +1,15 @@
 import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import * as icons from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 const RFPFlowTimeline = ({
-  blocks
+  blocks,
+  projectId
 }) => {
+  const navigate = useNavigate();
+  const params = useParams();
+  const actualProjectId = projectId || params?.id;
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const getStatusBg = status => {
@@ -59,8 +64,28 @@ const RFPFlowTimeline = ({
     }
   };
   const handleBlockClick = block => {
-    setSelectedBlock(block);
-    setIsDialogOpen(true);
+    // Navigate based on the block name
+    if (!actualProjectId) {
+      setSelectedBlock(block);
+      setIsDialogOpen(true);
+      return;
+    }
+
+    // Map block names to routes
+    const routeMap = {
+      "Summary Estimation": `/rfp-lifecycle/${actualProjectId}`,
+      "Response Writeup": `/rfp-lifecycle/${actualProjectId}/response-writeup`,
+      // Add more routes as needed
+    };
+
+    const route = routeMap[block.name];
+    if (route) {
+      navigate(route);
+    } else {
+      // For other blocks, show dialog
+      setSelectedBlock(block);
+      setIsDialogOpen(true);
+    }
   };
   const getBlockDetails = block => {
     if (block.status === "completed") {

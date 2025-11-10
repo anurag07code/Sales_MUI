@@ -8,8 +8,9 @@ import AIAssistantPanel from "@/components/AIAssistantPanel";
 import { MOCK_RFP_PROJECTS } from "@/lib/mockData";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { getJourneyBlocks } from "@/lib/journeyBlocks";
 const RFPDetail = () => {
   const {
     id
@@ -17,6 +18,19 @@ const RFPDetail = () => {
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const project = MOCK_RFP_PROJECTS.find(p => p.id === id);
+  
+  // Get journey blocks from localStorage with fallback to project default
+  const [journeyBlocks, setJourneyBlocks] = useState(() => {
+    if (!project) return [];
+    return getJourneyBlocks(id, project.journeyBlocks || []);
+  });
+
+  // Refresh journey blocks when project or id changes
+  useEffect(() => {
+    if (!project) return;
+    const blocks = getJourneyBlocks(id, project.journeyBlocks || []);
+    setJourneyBlocks(blocks);
+  }, [id, project]);
   if (!project) {
     return <div className="min-h-screen p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
@@ -101,7 +115,7 @@ const RFPDetail = () => {
 
         {/* Journey Flow - Top Section */}
         <Card className="p-6 border-2 border-primary/20 bg-card/50 backdrop-blur-sm">
-          <RFPFlowTimeline blocks={project.journeyBlocks} />
+          <RFPFlowTimeline blocks={journeyBlocks} projectId={id} />
         </Card>
 
         {/* RFP Analysis Details - Below Journey Flow */}

@@ -9,6 +9,7 @@ import { Building2, DollarSign, Calendar, Users, Code, FileText, Shield, Target,
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { moveToNextStep } from "@/lib/journeyBlocks";
 const RFPAnalysisDisplay = ({
   data,
   fileName,
@@ -1051,6 +1052,23 @@ const RFPAnalysisDisplay = ({
           className="gap-2"
           onClick={() => {
             if (projectId) {
+              // Update journey blocks: mark Summary Estimation as completed and Response Writeup as in-progress
+              // We need to get the default blocks from the project, but since we don't have access here,
+              // we'll use a helper that will handle it
+              const defaultBlocks = [
+                { name: "RFP Received", status: "completed", icon: "FileText" },
+                { name: "Initial Analysis", status: "completed", icon: "Search" },
+                { name: "Scope Definition", status: "completed", icon: "Target" },
+                { name: "Cost Estimation", status: "completed", icon: "Calculator" },
+                { name: "Resource Planning", status: "completed", icon: "Users" },
+                { name: "Risk Assessment", status: "completed", icon: "AlertTriangle" },
+                { name: "Summary Estimation", status: "in-progress", icon: "ListChecks" },
+                { name: "Response Writeup", status: "pending", icon: "FileText" },
+                { name: "Proposal Draft", status: "pending", icon: "FileEdit" },
+                { name: "Final Approval", status: "pending", icon: "CheckCircle" },
+                { name: "Submission", status: "pending", icon: "Send" }
+              ];
+              moveToNextStep(projectId, "Summary Estimation", defaultBlocks);
               navigate(`/rfp-lifecycle/${projectId}/response-writeup`);
             }
           }}

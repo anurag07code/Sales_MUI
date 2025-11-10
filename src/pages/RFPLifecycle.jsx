@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import AIAssistantPanel from "@/components/AIAssistantPanel";
 import { MOCK_RFP_PROJECTS } from "@/lib/mockData";
 import { RFP_RESULT_DATA } from "@/lib/data/rfpResult";
+import { updateJourneyBlocks } from "@/lib/journeyBlocks";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 const RFPLifecycle = () => {
@@ -185,55 +186,60 @@ const RFPLifecycle = () => {
         });
 
         // Update project journey blocks and add RFP estimation data
+        const updatedJourneyBlocks = [{
+          name: "RFP Received",
+          status: "completed",
+          icon: "FileText"
+        }, {
+          name: "Initial Analysis",
+          status: "completed",
+          icon: "Search"
+        }, {
+          name: "Scope Definition",
+          status: "completed",
+          icon: "Target"
+        }, {
+          name: "Cost Estimation",
+          status: "completed",
+          icon: "Calculator"
+        }, {
+          name: "Resource Planning",
+          status: "completed",
+          icon: "Users"
+        }, {
+          name: "Risk Assessment",
+          status: "completed",
+          icon: "AlertTriangle"
+        }, {
+          name: "Summary Estimation",
+          status: "in-progress",
+          icon: "ListChecks"
+        }, {
+          name: "Response Writeup",
+          status: "pending",
+          icon: "FileText"
+        }, {
+          name: "Proposal Draft",
+          status: "pending",
+          icon: "FileEdit"
+        }, {
+          name: "Final Approval",
+          status: "pending",
+          icon: "CheckCircle"
+        }, {
+          name: "Submission",
+          status: "pending",
+          icon: "Send"
+        }];
+        
+        // Save to localStorage
+        updateJourneyBlocks(projectId, updatedJourneyBlocks);
+        
         setProjects(prev => prev.map(project => {
           if (project.id === projectId) {
             return {
               ...project,
-              journeyBlocks: [{
-                name: "RFP Received",
-                status: "completed",
-                icon: "FileText"
-              }, {
-                name: "Initial Analysis",
-                status: "completed",
-                icon: "Search"
-              }, {
-                name: "Scope Definition",
-                status: "completed",
-                icon: "Target"
-              }, {
-                name: "Cost Estimation",
-                status: "completed",
-                icon: "Calculator"
-              }, {
-                name: "Resource Planning",
-                status: "completed",
-                icon: "Users"
-              }, {
-                name: "Risk Assessment",
-                status: "completed",
-                icon: "AlertTriangle"
-              }, {
-                name: "Summary Estimation",
-                status: "in-progress",
-                icon: "ListChecks"
-              }, {
-                name: "Response Writeup",
-                status: "pending",
-                icon: "FileText"
-              }, {
-                name: "Proposal Draft",
-                status: "pending",
-                icon: "FileEdit"
-              }, {
-                name: "Final Approval",
-                status: "pending",
-                icon: "CheckCircle"
-              }, {
-                name: "Submission",
-                status: "pending",
-                icon: "Send"
-              }],
+              journeyBlocks: updatedJourneyBlocks,
               // Add RFP estimation data from analysis
               rfpEstimation: RFP_RESULT_DATA.rfp_estimation
             };

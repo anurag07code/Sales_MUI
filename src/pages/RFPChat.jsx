@@ -9,12 +9,16 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Send, ArrowLeft, Plus, Bot, User, Copy, Check, ThumbsUp, ThumbsDown, 
   Download, Trash2, MessageSquare, Sparkles, Loader2, Upload, FileText, X, AlertCircle, Users, Globe,
-  ExternalLink, ChevronUp, ChevronDown, BookOpen, Link2, Eye, EyeOff
+  ExternalLink, ChevronUp, ChevronDown, BookOpen, Link2, Eye, EyeOff, Edit2, Menu, History
 } from "lucide-react";
 import { MOCK_RFP_PROJECTS } from "@/lib/mockData";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { 
+  getChatSessions, createChatSession, updateChatSession, 
+  deleteChatSession, getChatSession, addMessageToSession 
+} from "@/lib/chatSessions";
 
 const RFPChat = () => {
   const navigate = useNavigate();
@@ -23,9 +27,24 @@ const RFPChat = () => {
   const project = useMemo(() => MOCK_RFP_PROJECTS.find(p => p.id === id), [id]);
   const messagesEndRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Storage key for chat history
-  const storageKey = `rfp-chat-${id}`;
+  // Chat sessions state - ensure it's always an array
+  const [chatSessions, setChatSessions] = useState(() => {
+    if (!id) return [];
+    const sessions = getChatSessions(id);
+    return Array.isArray(sessions) ? sessions : [];
+  });
+  const [activeSessionId, setActiveSessionId] = useState(() => {
+    if (!id) return null;
+    const sessions = getChatSessions(id);
+    return Array.isArray(sessions) && sessions.length > 0 ? sessions[0].id : null;
+  });
+  const [editingSessionId, setEditingSessionId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [showGroupKB, setShowGroupKB] = useState(false);
 
   // Topic state
   const [topics, setTopics] = useState([
@@ -35,9 +54,6 @@ const RFPChat = () => {
   ]);
   const defaultTopic = searchParams.get("topic") || "transition";
   const [activeTopic, setActiveTopic] = useState(defaultTopic);
-  const [selectedGroup, setSelectedGroup] = useState(null);
-  const [groups, setGroups] = useState([]);
-  const [showGroupKB, setShowGroupKB] = useState(false);
 
   // Load groups
   useEffect(() => {
@@ -89,63 +105,84 @@ const RFPChat = () => {
     }
   }, [selectedGroup, showGroupKB, groups]);
 
-  // Load chat history from localStorage
-  const loadChatHistory = () => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return parsed.threads || {};
-      }
-    } catch (error) {
-      console.error("Error loading chat history:", error);
-    }
-    return null;
-  };
+  // Update URL when topic changes and switch/create session for that topic
+  useEffect(() => {
+    if (!id) return;
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set("topic", activeTopic);
+      return next;
+    });
 
-  // Save chat history to localStorage
-  const saveChatHistory = (threads) => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify({
-        threads,
-        lastUpdated: new Date().toISOString(),
-        projectId: id,
-        projectTitle: project?.rfpTitle
-      }));
-    } catch (error) {
-      console.error("Error saving chat history:", error);
+    // When topic changes, find or create a session for that topic
+    const sessions = getChatSessions(id);
+    const safeSessions = Array.isArray(sessions) ? sessions : [];
+    const topicName = topics.find(t => t.key === activeTopic)?.name || activeTopic;
+    
+    // Look for existing session with this topic
+    const existingSession = safeSessions.find(s => s.topic === topicName);
+    
+    if (existingSession) {
+      setActiveSessionId(existingSession.id);
+    } else if (safeSessions.length === 0) {
+      // No sessions exist, create one for current topic
+      const topicMessages = {
+        transition: "Let's craft the Transition section for your proposal. What angle should we emphasize?",
+        governance: "Ready to outline Governance. Any specific committees or KPIs to include?",
+        continuity: "Let's detail Business Continuity. Do you have RTO/RPO targets?"
+      };
+      const initialMessage = topicMessages[activeTopic] || `Let's discuss ${topicName}. How can I help you today?`;
+      const newSession = createChatSession(id, topicName);
+      updateChatSession(id, newSession.id, {
+        messages: [{
+          role: "assistant",
+          content: initialMessage,
+          timestamp: new Date().toISOString(),
+          id: Date.now().toString()
+        }]
+      });
+      setChatSessions(getChatSessions(id));
+      setActiveSessionId(newSession.id);
     }
-  };
+  }, [activeTopic, setSearchParams, id, topics]);
 
-  // Initialize threads with default or loaded history
-  const getInitialThreads = () => {
-    const loaded = loadChatHistory();
-    if (loaded && Object.keys(loaded).length > 0) {
-      return loaded;
+
+  // Initialize with a default chat session if none exist
+  useEffect(() => {
+    if (!id) return;
+    const sessions = getChatSessions(id);
+    const safeSessions = Array.isArray(sessions) ? sessions : [];
+    if (safeSessions.length === 0) {
+      const topicName = topics.find(t => t.key === activeTopic)?.name || activeTopic;
+      const newSession = createChatSession(id, topicName);
+      // Set initial message based on topic
+      const topicMessages = {
+        transition: "Let's craft the Transition section for your proposal. What angle should we emphasize?",
+        governance: "Ready to outline Governance. Any specific committees or KPIs to include?",
+        continuity: "Let's detail Business Continuity. Do you have RTO/RPO targets?"
+      };
+      const initialMessage = topicMessages[activeTopic] || `Let's discuss ${topicName}. How can I help you today?`;
+      updateChatSession(id, newSession.id, {
+        messages: [{
+          role: "assistant",
+          content: initialMessage,
+          timestamp: new Date().toISOString(),
+          id: Date.now().toString()
+        }]
+      });
+      setChatSessions([newSession]);
+      setActiveSessionId(newSession.id);
+    } else if (!activeSessionId) {
+      setActiveSessionId(safeSessions[0].id);
     }
-    return {
-      transition: [{ 
-        role: "assistant", 
-        content: "Let's craft the Transition section for your proposal. What angle should we emphasize?",
-        timestamp: new Date().toISOString(),
-        id: Date.now().toString()
-      }],
-      governance: [{ 
-        role: "assistant", 
-        content: "Ready to outline Governance. Any specific committees or KPIs to include?",
-        timestamp: new Date().toISOString(),
-        id: (Date.now() + 1).toString()
-      }],
-      continuity: [{ 
-        role: "assistant", 
-        content: "Let's detail Business Continuity. Do you have RTO/RPO targets?",
-        timestamp: new Date().toISOString(),
-        id: (Date.now() + 2).toString()
-      }],
-    };
-  };
+  }, [id]);
 
-  const [threads, setThreads] = useState(getInitialThreads);
+  // Refresh sessions when they change
+  useEffect(() => {
+    if (!id) return;
+    const sessions = getChatSessions(id);
+    setChatSessions(Array.isArray(sessions) ? sessions : []);
+  }, [id, activeSessionId]);
   const [draft, setDraft] = useState("");
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   const [messageReactions, setMessageReactions] = useState({});
@@ -154,23 +191,18 @@ const RFPChat = () => {
   const [attachedFiles, setAttachedFiles] = useState([]);
   const chatFileInputRef = useRef(null);
 
-  // Save to localStorage whenever threads change
-  useEffect(() => {
-    saveChatHistory(threads);
-  }, [threads, storageKey]);
+  // Get current session messages
+  const currentSession = useMemo(() => {
+    if (!activeSessionId) return null;
+    return getChatSession(id, activeSessionId);
+  }, [id, activeSessionId]);
 
-  useEffect(() => {
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      next.set("topic", activeTopic);
-      return next;
-    });
-  }, [activeTopic, setSearchParams]);
+  const currentMessages = currentSession?.messages || [];
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [threads[activeTopic]]);
+  }, [currentMessages]);
 
   const handleChatFileChange = (e) => {
     const files = Array.from(e.target.files || []);
@@ -187,140 +219,64 @@ const RFPChat = () => {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSend = () => {
-    const content = draft.trim();
-    if (!content && attachedFiles.length === 0) return;
-
-    const fileInfo = attachedFiles.map(f => ({
-      name: f.name,
-      size: f.size,
-      type: f.type
-    }));
-
-    const userMessage = {
-      role: "user",
-      content: content || (attachedFiles.length > 0 ? `[Attached ${attachedFiles.length} file(s)]` : ''),
-      files: fileInfo.length > 0 ? fileInfo : undefined,
-      timestamp: new Date().toISOString(),
-      id: Date.now().toString()
-    };
-
-    setThreads(prev => {
-      const current = prev[activeTopic] || [];
-      return { ...prev, [activeTopic]: [...current, userMessage] };
-    });
-    setDraft("");
-    setAttachedFiles([]);
-    setIsLoading(true);
-
-    // Simulate assistant reply with sources
-    setTimeout(() => {
-      const fileContext = fileInfo.length > 0 
-        ? ` I've reviewed the ${fileInfo.length} attached file(s) and ` 
-        : ' I\'ll ';
-      const topicName = topics.find(t => t.key === activeTopic)?.name || activeTopic;
-      const assistantMessage = {
-        role: "assistant",
-        content: `Acknowledged.${fileContext}refine the ${topicName} section accordingly. Based on your input${fileInfo.length > 0 ? ' and the documents provided' : ''}, here's a comprehensive approach:\n\n1. **Key Focus Areas**: ${content ? content.substring(0, 50) + '...' : 'Based on the attached documents'}\n\n2. **Implementation Strategy**: We'll align this with best practices and ensure compliance.\n\n3. **Next Steps**: Would you like me to elaborate on any specific aspect?`,
-        timestamp: new Date().toISOString(),
-        id: (Date.now() + 1).toString(),
-        sources: [
-          { type: "faq", title: `${topicName} FAQ`, url: `#${activeTopic}-faq`, icon: "book" },
-          { type: "document", title: `${topicName} Documentation`, url: `#${activeTopic}-docs`, icon: "link" }
-        ]
-      };
-      
-      setThreads(prev => {
-        const current = prev[activeTopic] || [];
-        return { ...prev, [activeTopic]: [...current, assistantMessage] };
-      });
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const handleCopy = async (messageId, content) => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopiedMessageId(messageId);
-      toast.success("Message copied to clipboard");
-      setTimeout(() => setCopiedMessageId(null), 2000);
-    } catch (error) {
-      toast.error("Failed to copy message");
-    }
-  };
-
-  const handleReaction = (messageId, reaction) => {
-    setMessageReactions(prev => ({
-      ...prev,
-      [messageId]: prev[messageId] === reaction ? null : reaction
-    }));
-    toast.success(reaction === "like" ? "Thanks for your feedback!" : "Feedback noted");
-  };
-
-  const toggleSources = (messageId) => {
-    setHiddenSources(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(messageId)) {
-        newSet.delete(messageId);
-      } else {
-        newSet.add(messageId);
-      }
-      return newSet;
-    });
-  };
-
-  const toggleExpand = (messageId) => {
-    setExpandedMessages(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(messageId)) {
-        newSet.delete(messageId);
-      } else {
-        newSet.add(messageId);
-      }
-      return newSet;
-    });
-  };
-
-  const handleDownloadChat = () => {
-    const currentMessages = threads[activeTopic] || [];
+  // Create new chat session
+  const handleNewChat = () => {
+    if (!id) return;
     const topicName = topics.find(t => t.key === activeTopic)?.name || activeTopic;
-    
-    let chatContent = `RFP Chat Export\n`;
-    chatContent += `Project: ${project?.rfpTitle || 'N/A'}\n`;
-    chatContent += `Topic: ${topicName}\n`;
-    chatContent += `Date: ${new Date().toLocaleString()}\n`;
-    chatContent += `\n${'='.repeat(50)}\n\n`;
-
-    currentMessages.forEach((msg, idx) => {
-      const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : '';
-      chatContent += `[${msg.role.toUpperCase()}] ${timestamp}\n`;
-      chatContent += `${msg.content}\n\n`;
-      chatContent += `${'-'.repeat(50)}\n\n`;
-    });
-
-    const blob = new Blob([chatContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `rfp-chat-${topicName}-${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    toast.success("Chat downloaded successfully");
+    const newSession = createChatSession(id, topicName);
+    const sessions = getChatSessions(id);
+    setChatSessions(Array.isArray(sessions) ? sessions : []);
+    setActiveSessionId(newSession.id);
+    toast.success("New chat created");
   };
 
-  const handleClearChat = () => {
-    if (window.confirm("Are you sure you want to clear this chat? This action cannot be undone.")) {
-      setThreads(prev => ({
-        ...prev,
-        [activeTopic]: []
-      }));
-      setMessageReactions({});
-      toast.success("Chat cleared");
+  // Switch to a different chat session
+  const handleSwitchSession = (sessionId) => {
+    setActiveSessionId(sessionId);
+  };
+
+  // Delete a chat session
+  const handleDeleteSession = (sessionId, e) => {
+    e.stopPropagation();
+    if (!id) return;
+    if (window.confirm("Are you sure you want to delete this chat? This action cannot be undone.")) {
+      const remainingSessions = deleteChatSession(id, sessionId);
+      const safeSessions = Array.isArray(remainingSessions) ? remainingSessions : [];
+      setChatSessions(safeSessions);
+      if (activeSessionId === sessionId) {
+        setActiveSessionId(safeSessions.length > 0 ? safeSessions[0].id : null);
+      }
+      toast.success("Chat deleted");
     }
   };
 
+  // Start editing session title
+  const handleStartEditTitle = (sessionId, currentTitle, e) => {
+    e.stopPropagation();
+    setEditingSessionId(sessionId);
+    setEditingTitle(currentTitle);
+  };
+
+  // Save edited title
+  const handleSaveTitle = (sessionId) => {
+    if (!id) return;
+    if (editingTitle.trim()) {
+      updateChatSession(id, sessionId, { title: editingTitle.trim() });
+      const sessions = getChatSessions(id);
+      setChatSessions(Array.isArray(sessions) ? sessions : []);
+      setEditingSessionId(null);
+      setEditingTitle("");
+      toast.success("Chat title updated");
+    }
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingSessionId(null);
+    setEditingTitle("");
+  };
+
+  // Create Topic Dialog state
   const [newTopicName, setNewTopicName] = useState("");
   const [newTopicFiles, setNewTopicFiles] = useState([]);
   const [fileDialogOpen, setFileDialogOpen] = useState(false);
@@ -399,15 +355,6 @@ const RFPChat = () => {
     };
     
     setTopics(prev => [...prev, newTopic]);
-    setThreads(prev => ({ 
-      ...prev, 
-      [key]: [{ 
-        role: "assistant", 
-        content: `Created topic "${name}" with ${fileNames.length} file(s). Share details to begin drafting.`,
-        timestamp: new Date().toISOString(),
-        id: Date.now().toString()
-      }] 
-    }));
     
     // Save to group if selected
     if (selectedGroup) {
@@ -451,6 +398,155 @@ const RFPChat = () => {
     addTopic();
   };
 
+  const handleSend = () => {
+    if (!activeSessionId) {
+      handleNewChat();
+      return;
+    }
+
+    const content = draft.trim();
+    if (!content && attachedFiles.length === 0) return;
+
+    const fileInfo = attachedFiles.map(f => ({
+      name: f.name,
+      size: f.size,
+      type: f.type
+    }));
+
+    const userMessage = {
+      role: "user",
+      content: content || (attachedFiles.length > 0 ? `[Attached ${attachedFiles.length} file(s)]` : ''),
+      files: fileInfo.length > 0 ? fileInfo : undefined,
+      timestamp: new Date().toISOString(),
+      id: Date.now().toString()
+    };
+
+    if (!id || !activeSessionId) return;
+    addMessageToSession(id, activeSessionId, userMessage);
+    const sessions = getChatSessions(id);
+    setChatSessions(Array.isArray(sessions) ? sessions : []);
+    setDraft("");
+    setAttachedFiles([]);
+    setIsLoading(true);
+
+    // Simulate assistant reply with sources
+    setTimeout(() => {
+      const fileContext = fileInfo.length > 0 
+        ? ` I've reviewed the ${fileInfo.length} attached file(s) and ` 
+        : ' I\'ll ';
+      const assistantMessage = {
+        role: "assistant",
+        content: `Acknowledged.${fileContext}help you with your RFP. Based on your input${fileInfo.length > 0 ? ' and the documents provided' : ''}, here's a comprehensive approach:\n\n1. **Key Focus Areas**: ${content ? content.substring(0, 50) + '...' : 'Based on the attached documents'}\n\n2. **Implementation Strategy**: We'll align this with best practices and ensure compliance.\n\n3. **Next Steps**: Would you like me to elaborate on any specific aspect?`,
+        timestamp: new Date().toISOString(),
+        id: (Date.now() + 1).toString(),
+        sources: [
+          { type: "faq", title: "RFP FAQ", url: "#rfp-faq", icon: "book" },
+          { type: "document", title: "RFP Documentation", url: "#rfp-docs", icon: "link" }
+        ]
+      };
+      
+      if (id && activeSessionId) {
+        addMessageToSession(id, activeSessionId, assistantMessage);
+        const sessions = getChatSessions(id);
+        setChatSessions(Array.isArray(sessions) ? sessions : []);
+      }
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  const handleCopy = async (messageId, content) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(messageId);
+      toast.success("Message copied to clipboard");
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch (error) {
+      toast.error("Failed to copy message");
+    }
+  };
+
+  const handleReaction = (messageId, reaction) => {
+    setMessageReactions(prev => ({
+      ...prev,
+      [messageId]: prev[messageId] === reaction ? null : reaction
+    }));
+    toast.success(reaction === "like" ? "Thanks for your feedback!" : "Feedback noted");
+  };
+
+  const toggleSources = (messageId) => {
+    setHiddenSources(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleExpand = (messageId) => {
+    setExpandedMessages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleDownloadChat = () => {
+    if (!currentSession) return;
+    
+    let chatContent = `RFP Chat Export\n`;
+    chatContent += `Project: ${project?.rfpTitle || 'N/A'}\n`;
+    chatContent += `Chat: ${currentSession.title}\n`;
+    chatContent += `Date: ${new Date().toLocaleString()}\n`;
+    chatContent += `\n${'='.repeat(50)}\n\n`;
+
+    currentMessages.forEach((msg, idx) => {
+      const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : '';
+      chatContent += `[${msg.role.toUpperCase()}] ${timestamp}\n`;
+      chatContent += `${msg.content}\n\n`;
+      chatContent += `${'-'.repeat(50)}\n\n`;
+    });
+
+    const blob = new Blob([chatContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safeTitle = currentSession.title.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
+    a.download = `rfp-chat-${safeTitle}-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Chat downloaded successfully");
+  };
+
+  const handleClearChat = () => {
+    if (!activeSessionId) return;
+    if (window.confirm("Are you sure you want to clear this chat? This action cannot be undone.")) {
+      if (id && activeSessionId) {
+        updateChatSession(id, activeSessionId, { 
+          messages: [{
+            role: "assistant",
+            content: "Chat cleared. How can I help you?",
+            timestamp: new Date().toISOString(),
+            id: Date.now().toString()
+          }]
+        });
+        const sessions = getChatSessions(id);
+        setChatSessions(Array.isArray(sessions) ? sessions : []);
+      }
+      setMessageReactions({});
+      toast.success("Chat cleared");
+    }
+  };
+
+
   if (!project) {
     return (
       <div className="min-h-screen p-4 sm:p-6 lg:p-8">
@@ -464,54 +560,175 @@ const RFPChat = () => {
     );
   }
 
-  const currentMessages = threads[activeTopic] || [];
-
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Enhanced Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(`/rfp-lifecycle/${project.id}`)} className="hover:bg-accent/50">
-              <ArrowLeft className="h-5 w-5" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex">
+      {/* Sidebar */}
+      <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-primary/20 bg-card/50 backdrop-blur-sm flex flex-col`}>
+        <div className="p-4 border-b border-primary/20">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-lg flex items-center gap-2">
+              <History className="h-5 w-5 text-primary" />
+              Chat History
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(false)}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
             </Button>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
-                <MessageSquare className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-bold flex items-center gap-2">
-                  AI Chat Assistant
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">{project.rfpTitle}</p>
+          </div>
+          <Button 
+            onClick={handleNewChat} 
+            className="w-full gap-2 bg-primary hover:bg-primary/90"
+            size="sm"
+          >
+            <Plus className="h-4 w-4" />
+            New Chat
+          </Button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {Array.isArray(chatSessions) && chatSessions.map((session) => (
+            <div
+              key={session.id}
+              onClick={() => handleSwitchSession(session.id)}
+              className={`group relative p-3 rounded-lg cursor-pointer transition-all ${
+                activeSessionId === session.id
+                  ? 'bg-primary/20 border-2 border-primary/40'
+                  : 'bg-card/50 border-2 border-transparent hover:bg-primary/10 hover:border-primary/20'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                {editingSessionId === session.id ? (
+                  <div className="flex-1 flex items-center gap-2">
+                    <Input
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveTitle(session.id);
+                        if (e.key === 'Escape') handleCancelEdit();
+                      }}
+                      className="h-7 text-xs"
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSaveTitle(session.id);
+                      }}
+                    >
+                      <Check className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelEdit();
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{session.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(session.updatedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6"
+                        onClick={(e) => handleStartEditTitle(session.id, session.title, e)}
+                        title="Rename"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-destructive hover:text-destructive"
+                        onClick={(e) => handleDeleteSession(session.id, e)}
+                        title="Delete"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleDownloadChat}
-              className="gap-2"
-              disabled={currentMessages.length === 0}
-            >
-              <Download className="h-4 w-4" />
-              Download Chat
-            </Button>
-            {currentMessages.length > 0 && (
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+          {/* Enhanced Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {!sidebarOpen && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setSidebarOpen(true)}
+                  className="hover:bg-accent/50"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" onClick={() => navigate(`/rfp-lifecycle/${project.id}`)} className="hover:bg-accent/50">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
+                  <MessageSquare className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl lg:text-3xl font-bold flex items-center gap-2">
+                    AI Chat Assistant
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </h1>
+                  <p className="text-sm text-muted-foreground mt-1">{project.rfpTitle}</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={handleClearChat}
-                className="gap-2 text-destructive hover:text-destructive"
+                onClick={handleDownloadChat}
+                className="gap-2"
+                disabled={currentMessages.length === 0}
               >
-                <Trash2 className="h-4 w-4" />
-                Clear
+                <Download className="h-4 w-4" />
+                Download Chat
               </Button>
-            )}
+              {currentMessages.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleClearChat}
+                  className="gap-2 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
 
         {/* Group Knowledge Base Selector */}
         <Card className="p-4 border-2 border-primary/20 bg-card/50 backdrop-blur-sm mb-4">
@@ -595,6 +812,7 @@ const RFPChat = () => {
             </div>
           </div>
         </Card>
+
 
         {/* Enhanced Chat Window */}
         <Card className="p-0 overflow-hidden h-[75vh] flex flex-col border-2 border-primary/20 shadow-2xl rounded-2xl bg-white dark:bg-card">
@@ -1037,6 +1255,7 @@ const RFPChat = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
     </div>
   );

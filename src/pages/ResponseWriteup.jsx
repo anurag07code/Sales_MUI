@@ -10,12 +10,46 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import RFPFlowTimeline from "@/components/RFPFlowTimeline";
 import { MOCK_RFP_PROJECTS } from "@/lib/mockData";
 import { toast } from "sonner";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { getJourneyBlocks, updateJourneyStep } from "@/lib/journeyBlocks";
 
 const ResponseWriteup = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const project = MOCK_RFP_PROJECTS.find(p => p.id === id);
+  
+  // Get journey blocks from localStorage with fallback to project default
+  const [journeyBlocks, setJourneyBlocks] = useState(() => {
+    if (!project) return [];
+    return getJourneyBlocks(id, project.journeyBlocks || []);
+  });
+
+  // Update journey blocks when component mounts or project changes
+  useEffect(() => {
+    if (!project) return;
+    let blocks = getJourneyBlocks(id, project.journeyBlocks || []);
+    let needsUpdate = false;
+    
+    // Ensure Response Writeup is marked as in-progress when on this page
+    blocks = blocks.map(block => {
+      if (block.name === "Response Writeup" && block.status !== "in-progress") {
+        needsUpdate = true;
+        return { ...block, status: "in-progress" };
+      }
+      // Mark Summary Estimation as completed if it was in-progress
+      if (block.name === "Summary Estimation" && block.status === "in-progress") {
+        needsUpdate = true;
+        return { ...block, status: "completed" };
+      }
+      return block;
+    });
+    
+    if (needsUpdate) {
+      // Update in localStorage
+      updateJourneyBlocks(id, blocks);
+      setJourneyBlocks(blocks);
+    }
+  }, [id, project]);
 
   if (!project) {
     return (
@@ -303,7 +337,7 @@ const ResponseWriteup = () => {
 
         {/* Journey Flow */}
         <Card className="p-6 border-2 border-primary/20 bg-card/50 backdrop-blur-sm">
-          <RFPFlowTimeline blocks={project.journeyBlocks} />
+          <RFPFlowTimeline blocks={journeyBlocks} projectId={id} />
         </Card>
 
         {/* Response Write-up Content */}
