@@ -689,7 +689,7 @@ const RFPChat = () => {
                   <Menu className="h-5 w-5" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" onClick={() => navigate(`/rfp-lifecycle/${project.id}`)} className="hover:bg-accent/50">
+              <Button variant="ghost" size="icon" onClick={() => navigate(`/rfp-lifecycle/${project.id}/response-writeup`)} className="hover:bg-accent/50">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="flex items-center gap-3">

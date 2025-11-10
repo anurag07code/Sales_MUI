@@ -9,7 +9,8 @@ import { Building2, DollarSign, Calendar, Users, Code, FileText, Shield, Target,
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { moveToNextStep } from "@/lib/journeyBlocks";
+import { moveToNextStep, getJourneyBlocks } from "@/lib/journeyBlocks";
+import { MOCK_RFP_PROJECTS } from "@/lib/mockData";
 const RFPAnalysisDisplay = ({
   data,
   fileName,
@@ -1053,9 +1054,8 @@ const RFPAnalysisDisplay = ({
           onClick={() => {
             if (projectId) {
               // Update journey blocks: mark Summary Estimation as completed and Response Writeup as in-progress
-              // We need to get the default blocks from the project, but since we don't have access here,
-              // we'll use a helper that will handle it
-              const defaultBlocks = [
+              const project = MOCK_RFP_PROJECTS.find(p => p.id === projectId);
+              const defaultBlocks = project?.journeyBlocks || [
                 { name: "RFP Received", status: "completed", icon: "FileText" },
                 { name: "Initial Analysis", status: "completed", icon: "Search" },
                 { name: "Scope Definition", status: "completed", icon: "Target" },

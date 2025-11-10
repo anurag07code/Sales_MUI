@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { getJourneyBlocks } from "@/lib/journeyBlocks";
+import { getJourneyBlocks, updateJourneyBlocks } from "@/lib/journeyBlocks";
 const RFPDetail = () => {
   const {
     id
@@ -25,11 +25,34 @@ const RFPDetail = () => {
     return getJourneyBlocks(id, project.journeyBlocks || []);
   });
 
-  // Refresh journey blocks when project or id changes
+  // Update journey blocks when component mounts or project changes
+  // On Summary Estimation page, mark Summary Estimation as in-progress
   useEffect(() => {
     if (!project) return;
-    const blocks = getJourneyBlocks(id, project.journeyBlocks || []);
-    setJourneyBlocks(blocks);
+    let blocks = getJourneyBlocks(id, project.journeyBlocks || []);
+    let needsUpdate = false;
+    
+    // Ensure Summary Estimation is marked as in-progress when on this page
+    blocks = blocks.map(block => {
+      if (block.name === "Summary Estimation" && block.status !== "in-progress") {
+        needsUpdate = true;
+        return { ...block, status: "in-progress" };
+      }
+      // Ensure Response Writeup is not in-progress when on Summary Estimation page
+      if (block.name === "Response Writeup" && block.status === "in-progress") {
+        needsUpdate = true;
+        return { ...block, status: "pending" };
+      }
+      return block;
+    });
+    
+    if (needsUpdate) {
+      // Update in localStorage
+      updateJourneyBlocks(id, blocks);
+      setJourneyBlocks(blocks);
+    } else {
+      setJourneyBlocks(blocks);
+    }
   }, [id, project]);
   if (!project) {
     return <div className="min-h-screen p-4 sm:p-6 lg:p-8">

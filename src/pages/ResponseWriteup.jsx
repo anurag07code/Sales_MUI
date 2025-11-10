@@ -11,7 +11,7 @@ import RFPFlowTimeline from "@/components/RFPFlowTimeline";
 import { MOCK_RFP_PROJECTS } from "@/lib/mockData";
 import { toast } from "sonner";
 import { useState, useRef, useEffect, useMemo } from "react";
-import { getJourneyBlocks, updateJourneyStep } from "@/lib/journeyBlocks";
+import { getJourneyBlocks, updateJourneyBlocks } from "@/lib/journeyBlocks";
 
 const ResponseWriteup = () => {
   const { id } = useParams();
