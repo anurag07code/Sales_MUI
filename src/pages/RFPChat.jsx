@@ -114,65 +114,45 @@ const RFPChat = () => {
       return next;
     });
 
-    // When topic changes, find or create a session for that topic
     const sessions = getChatSessions(id);
     const safeSessions = Array.isArray(sessions) ? sessions : [];
     const topicName = topics.find(t => t.key === activeTopic)?.name || activeTopic;
-    
-    // Look for existing session with this topic
+
     const existingSession = safeSessions.find(s => s.topic === topicName);
-    
     if (existingSession) {
       setActiveSessionId(existingSession.id);
-    } else if (safeSessions.length === 0) {
-      // No sessions exist, create one for current topic
-      const topicMessages = {
-        transition: "Let's craft the Transition section for your proposal. What angle should we emphasize?",
-        governance: "Ready to outline Governance. Any specific committees or KPIs to include?",
-        continuity: "Let's detail Business Continuity. Do you have RTO/RPO targets?"
-      };
-      const initialMessage = topicMessages[activeTopic] || `Let's discuss ${topicName}. How can I help you today?`;
-      const newSession = createChatSession(id, topicName);
-      updateChatSession(id, newSession.id, {
-        messages: [{
-          role: "assistant",
-          content: initialMessage,
-          timestamp: new Date().toISOString(),
-          id: Date.now().toString()
-        }]
-      });
-      setChatSessions(getChatSessions(id));
-      setActiveSessionId(newSession.id);
+      return;
     }
+
+    // Create a new session for this topic if it doesn't exist
+    const topicMessages = {
+      transition: "Let's craft the Transition section for your proposal. What angle should we emphasize?",
+      governance: "Ready to outline Governance. Any specific committees or KPIs to include?",
+      continuity: "Let's detail Business Continuity. Do you have RTO/RPO targets?"
+    };
+    const initialMessage = topicMessages[activeTopic] || `Let's discuss ${topicName}. How can I help you today?`;
+    const newSession = createChatSession(id, topicName);
+    updateChatSession(id, newSession.id, {
+      messages: [{
+        role: "assistant",
+        content: initialMessage,
+        timestamp: new Date().toISOString(),
+        id: Date.now().toString()
+      }]
+    });
+    const updatedSessions = getChatSessions(id);
+    setChatSessions(Array.isArray(updatedSessions) ? updatedSessions : []);
+    setActiveSessionId(newSession.id);
   }, [activeTopic, setSearchParams, id, topics]);
 
 
-  // Initialize with a default chat session if none exist
+  // Ensure sessions state stays in sync and set default session if missing
   useEffect(() => {
     if (!id) return;
     const sessions = getChatSessions(id);
     const safeSessions = Array.isArray(sessions) ? sessions : [];
-    if (safeSessions.length === 0) {
-      const topicName = topics.find(t => t.key === activeTopic)?.name || activeTopic;
-      const newSession = createChatSession(id, topicName);
-      // Set initial message based on topic
-      const topicMessages = {
-        transition: "Let's craft the Transition section for your proposal. What angle should we emphasize?",
-        governance: "Ready to outline Governance. Any specific committees or KPIs to include?",
-        continuity: "Let's detail Business Continuity. Do you have RTO/RPO targets?"
-      };
-      const initialMessage = topicMessages[activeTopic] || `Let's discuss ${topicName}. How can I help you today?`;
-      updateChatSession(id, newSession.id, {
-        messages: [{
-          role: "assistant",
-          content: initialMessage,
-          timestamp: new Date().toISOString(),
-          id: Date.now().toString()
-        }]
-      });
-      setChatSessions([newSession]);
-      setActiveSessionId(newSession.id);
-    } else if (!activeSessionId) {
+    setChatSessions(safeSessions);
+    if (!activeSessionId && safeSessions.length > 0) {
       setActiveSessionId(safeSessions[0].id);
     }
   }, [id]);
@@ -195,7 +175,7 @@ const RFPChat = () => {
   const currentSession = useMemo(() => {
     if (!activeSessionId) return null;
     return getChatSession(id, activeSessionId);
-  }, [id, activeSessionId]);
+  }, [id, activeSessionId, chatSessions]);
 
   const currentMessages = currentSession?.messages || [];
 
@@ -423,8 +403,22 @@ const RFPChat = () => {
 
     if (!id || !activeSessionId) return;
     addMessageToSession(id, activeSessionId, userMessage);
-    const sessions = getChatSessions(id);
+    let sessions = getChatSessions(id);
     setChatSessions(Array.isArray(sessions) ? sessions : []);
+
+    // Auto-rename session to the user's first message snippet if it still has a default title
+    const sessionNow = getChatSession(id, activeSessionId);
+    const currentTitle = sessionNow?.title || "";
+    const isDefaultTitle = /^\s*(New Chat|Chat about)/i.test(currentTitle);
+    if (isDefaultTitle) {
+      const base = content || (fileInfo.length > 0 ? `Files (${fileInfo.length})` : "");
+      const snippet = base.replace(/\s+/g, " ").trim().slice(0, 60);
+      if (snippet.length > 0) {
+        updateChatSession(id, activeSessionId, { title: snippet });
+        sessions = getChatSessions(id);
+        setChatSessions(Array.isArray(sessions) ? sessions : []);
+      }
+    }
     setDraft("");
     setAttachedFiles([]);
     setIsLoading(true);
@@ -524,26 +518,6 @@ const RFPChat = () => {
     a.remove();
     URL.revokeObjectURL(url);
     toast.success("Chat downloaded successfully");
-  };
-
-  const handleClearChat = () => {
-    if (!activeSessionId) return;
-    if (window.confirm("Are you sure you want to clear this chat? This action cannot be undone.")) {
-      if (id && activeSessionId) {
-        updateChatSession(id, activeSessionId, { 
-          messages: [{
-            role: "assistant",
-            content: "Chat cleared. How can I help you?",
-            timestamp: new Date().toISOString(),
-            id: Date.now().toString()
-          }]
-        });
-        const sessions = getChatSessions(id);
-        setChatSessions(Array.isArray(sessions) ? sessions : []);
-      }
-      setMessageReactions({});
-      toast.success("Chat cleared");
-    }
   };
 
 
@@ -699,7 +673,6 @@ const RFPChat = () => {
                 <div>
                   <h1 className="text-2xl lg:text-3xl font-bold flex items-center gap-2">
                     AI Chat Assistant
-                    <Sparkles className="h-5 w-5 text-primary" />
                   </h1>
                   <p className="text-sm text-muted-foreground mt-1">{project.rfpTitle}</p>
                 </div>
@@ -716,17 +689,6 @@ const RFPChat = () => {
                 <Download className="h-4 w-4" />
                 Download Chat
               </Button>
-              {currentMessages.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleClearChat}
-                  className="gap-2 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Clear
-                </Button>
-              )}
             </div>
           </div>
 
