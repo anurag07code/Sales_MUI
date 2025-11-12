@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import RFPFlowTimeline from "@/components/RFPFlowTimeline";
 import { MOCK_RFP_PROJECTS } from "@/lib/mockData";
 import { toast } from "sonner";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, createRef } from "react";
 import { getJourneyBlocks, updateJourneyBlocks } from "@/lib/journeyBlocks";
 
 const ResponseWriteup = () => {
@@ -83,6 +83,7 @@ const ResponseWriteup = () => {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [groups, setGroups] = useState([]);
   const [showGroupKB, setShowGroupKB] = useState(false);
+  const uploadQueryRefs = useRef({});
 
   // Load groups and group knowledge bases
   useEffect(() => {
@@ -237,6 +238,39 @@ const ResponseWriteup = () => {
       fileInputRef.current.value = "";
     }
     toast.success(`Topic "${name}" added successfully with ${fileNames.length} file(s)${selectedGroup ? ' and shared with group' : ''}`);
+  };
+
+  const ensureUploadRef = (key) => {
+    if (!uploadQueryRefs.current[key]) {
+      uploadQueryRefs.current[key] = createRef();
+    }
+    return uploadQueryRefs.current[key];
+  };
+
+  const handleUploadQueries = async (key, filesList) => {
+    const files = Array.from(filesList || []);
+    if (files.length === 0) return;
+    try {
+      const contents = await Promise.all(files.map(file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(`--- ${file.name} ---\n${reader.result}`);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file);
+      })));
+      setTopicContents(prev => ({
+        ...prev,
+        [key]: `${prev[key] || ""}\n\n${contents.join("\n\n")}`.trim()
+      }));
+      toast.success(`Uploaded ${files.length} file(s) to ${kbTopics.find(t => t.key === key)?.name || key}`);
+    } catch (error) {
+      console.error("Error uploading queries:", error);
+      toast.error("Failed to process the uploaded files. Please try again.");
+    } finally {
+      const ref = uploadQueryRefs.current[key];
+      if (ref?.current) {
+        ref.current.value = "";
+      }
+    }
   };
 
   const onUploadFiles = (key, filesList) => {
@@ -602,15 +636,33 @@ const ResponseWriteup = () => {
 
             {kbTopics.map(topic => {
               const content = topicContents[topic.key] || "";
+              const uploadRef = ensureUploadRef(topic.key);
               return (
                 <TabsContent key={topic.key} value={topic.key}>
                   <div className="mt-4 p-4 rounded-lg bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border-l-4 border-primary/30">
                     <h4 className="font-semibold mb-2 text-primary capitalize">{topic.key.replace(/-/g, ' ')} Overview :</h4>
                     <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{content}</p>
                   </div>
-                  <div className="flex items-center gap-2 mt-3">
+                  <div className="flex items-center gap-2 mt-3 flex-wrap">
                     <Button size="sm" onClick={() => regenerateTopic(topic.key)}>Regenerate Response</Button>
                     <Button size="sm" variant="outline" onClick={() => exportTopic(topic.key)}>Export Topic</Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => uploadRef.current?.click()}
+                    >
+                      <Upload className="h-4 w-4" />
+                      Upload Queries
+                    </Button>
+                    <input
+                      ref={uploadRef}
+                      type="file"
+                      accept=".txt,.md,.csv"
+                      multiple
+                      className="hidden"
+                      onChange={e => handleUploadQueries(topic.key, e.target.files)}
+                    />
                   </div>
                 </TabsContent>
               );

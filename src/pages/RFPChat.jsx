@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, createRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -282,6 +282,15 @@ const RFPChat = () => {
     }
   };
 
+  const uploadInputRefs = useRef({});
+
+  const ensureUploadRef = key => {
+    if (!uploadInputRefs.current[key]) {
+      uploadInputRefs.current[key] = createRef();
+    }
+    return uploadInputRefs.current[key];
+  };
+
   const handleCreateTopicClick = () => {
     // Reset errors and open dialog
     setNewTopicName("");
@@ -446,6 +455,32 @@ const RFPChat = () => {
       }
       setIsLoading(false);
     }, 1000);
+  };
+
+  const handleUploadQueries = async (topicKey, filesList) => {
+    const files = Array.from(filesList || []);
+    if (files.length === 0) return;
+    try {
+      const contents = await Promise.all(files.map(file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(`--- ${file.name} ---\n${reader.result}`);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file);
+      })));
+      setTopicContents(prev => ({
+        ...prev,
+        [topicKey]: `${prev[topicKey] || ""}\n\n${contents.join("\n\n")}`.trim()
+      }));
+      toast.success(`Uploaded ${files.length} file(s) to ${topics.find(t => t.key === topicKey)?.name || topicKey}`);
+    } catch (error) {
+      console.error("Error reading files:", error);
+      toast.error("Failed to read uploaded files. Please try again.");
+    } finally {
+      const ref = uploadInputRefs.current[topicKey];
+      if (ref?.current) {
+        ref.current.value = "";
+      }
+    }
   };
 
   const handleCopy = async (messageId, content) => {
