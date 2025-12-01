@@ -5,7 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 const RFPFlowTimeline = ({
   blocks,
-  projectId
+  projectId,
+  startFromBlockName,
+  hideConnectors = false,
+  useAvailableLabels = false
 }) => {
   const navigate = useNavigate();
   const params = useParams();
@@ -108,6 +111,127 @@ const RFPFlowTimeline = ({
       };
     }
   };
+
+  const getIconName = block => {
+    switch (block.name) {
+      case "RFP Identification":
+        return "Search";
+      case "RFP Qualification":
+        return "CheckSquare";
+      case "Understanding RFP Document":
+      case "Summary Estimation":
+        return "ListChecks";
+      case "Legal Review & Contractual Review":
+        return "FileText";
+      case "Solution Story Boarding":
+        return "Layers";
+      case "Response Writeup":
+        return "Pencil";
+      case "Estimation & Team Loading":
+        return "Users";
+      case "Identification of References and Case Studies":
+        return "Sparkles";
+      case "Rating and Benchmarking Response and Improving":
+        return "BarChart3";
+      case "Customer Response Analysis":
+        return "Network";
+      case "RFP Received":
+        return "FileText";
+      case "Initial Analysis":
+        return "Search";
+      case "Scope Definition":
+        return "Target";
+      case "Cost Estimation":
+        return "DollarSign";
+      case "Resource Planning":
+        return "Users";
+      case "Risk Assessment":
+        return "Shield";
+      case "Proposal Draft":
+        return "FileText";
+      case "Final Approval":
+        return "CheckCircle2";
+      case "Submission":
+        return "Send";
+      default:
+        return block.icon || "FileText";
+    }
+  };
+
+  // Optionally trim the journey so that it starts from a specific block
+  // and inject additional journey steps for UI-only purposes
+  const displayBlocks = (() => {
+    let result = blocks;
+
+    if (startFromBlockName) {
+      const startIndex = blocks.findIndex(block => block.name === startFromBlockName);
+      if (startIndex !== -1) {
+        result = blocks.slice(startIndex);
+      }
+    }
+
+    // When using "Available / Coming soon" labels, prepend two conceptual steps
+    // before "Understanding RFP Document", add two more after it,
+    // and extend the flow with additional post–Response Writeup steps
+    if (useAvailableLabels) {
+      const preBlocks = [{
+        name: "RFP Identification",
+        status: "pending",
+        icon: "FileText"
+      }, {
+        name: "RFP Qualification",
+        status: "pending",
+        icon: "Search"
+      }];
+      result = [...preBlocks, ...result];
+
+      const summaryIndex = result.findIndex(block => block.name === "Summary Estimation");
+      if (summaryIndex !== -1) {
+        const postBlocks = [{
+          name: "Legal Review & Contractual Review",
+          status: "pending",
+          icon: "FileText"
+        }, {
+          name: "Solution Story Boarding",
+          status: "pending",
+          icon: "Layers"
+        }];
+        result = [
+          ...result.slice(0, summaryIndex + 1),
+          ...postBlocks,
+          ...result.slice(summaryIndex + 1)
+        ];
+      }
+
+      // Keep everything only up to and including "Response Writeup"
+      const responseIndex = result.findIndex(block => block.name === "Response Writeup");
+      if (responseIndex !== -1) {
+        result = result.slice(0, responseIndex + 1);
+
+        const afterResponseBlocks = [{
+          name: "Estimation & Team Loading",
+          status: "pending",
+          icon: "Users"
+        }, {
+          name: "Identification of References and Case Studies",
+          status: "pending",
+          icon: "Search"
+        }, {
+          name: "Rating and Benchmarking Response and Improving",
+          status: "pending",
+          icon: "BarChart3"
+        }, {
+          name: "Customer Response Analysis",
+          status: "pending",
+          icon: "FileText"
+        }];
+
+        result = [...result, ...afterResponseBlocks];
+      }
+    }
+
+    return result;
+  })();
   return <>
       <div className="w-full">
         <h2 className="text-xl font-bold mb-6">RFP Journey Flow</h2>
@@ -116,9 +240,13 @@ const RFPFlowTimeline = ({
         <div className="w-full relative">
           {/* Responsive grid: compact on mobile, expanded on md+ */}
           <div className="grid grid-cols-5 md:grid-cols-10 gap-2 relative">
-            {blocks.map((block, index) => {
-            const IconComponent = icons[block.icon];
-            const isLast = index === blocks.length - 1;
+            {displayBlocks.map((block, index) => {
+            const IconComponent = icons[getIconName(block)];
+            const isLast = index === displayBlocks.length - 1;
+            const displayName = block.name === "Summary Estimation" ? "Understanding RFP Document" : block.name;
+            const statusLabel = useAvailableLabels ? block.name === "Summary Estimation" || block.name === "Response Writeup" ? "Available" : "Coming soon" : block.status.replace("-", " ");
+            const isAvailable = statusLabel === "Available";
+            const isComingSoon = statusLabel === "Coming soon";
             return <div key={index} className="relative">
                   {/* Main Block */}
                   <div className="flex flex-col items-center cursor-pointer group w-full" onClick={() => handleBlockClick(block)}>
@@ -127,8 +255,8 @@ const RFPFlowTimeline = ({
                       {IconComponent && <IconComponent className={`h-4 w-4 sm:h-5 sm:w-5 ${getIconColor(block.status)}`} />}
                     </div>
                     
-                    {/* Horizontal Connector Line to Next Block (avoid overlapping the circles) */}
-                    {!isLast && <div className="absolute top-5 sm:top-6 z-0" style={{
+                    {/* Optional horizontal connector line to next block */}
+                    {!hideConnectors && !isLast && <div className="absolute top-5 sm:top-6 z-0" style={{
                   left: 'calc(50% + 1.25rem)',
                   // start after current circle radius (w-10 => 2.5rem => 1.25rem radius)
                   width: 'calc(100% - 2.5rem)'
@@ -139,9 +267,21 @@ const RFPFlowTimeline = ({
                     
                     {/* Card with Name and Status */}
                     <Card className={`mt-3 sm:mt-4 p-2 sm:p-3 w-full text-center gradient-card border-t-2 transition-all group-hover:shadow-elegant ${block.status === "completed" ? "border-t-primary/60" : block.status === "in-progress" ? "border-t-primary" : "border-t-border"}`}>
-                      <p className="font-medium text-[10px] sm:text-xs mb-1 line-clamp-2 leading-tight">{block.name}</p>
-                      <p className={`text-[9px] sm:text-[10px] capitalize ${block.status === "completed" ? "text-primary" : block.status === "in-progress" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
-                        {block.status.replace("-", " ")}
+                      <p className="font-medium text-[10px] sm:text-xs mb-1 line-clamp-2 leading-tight">
+                        {displayName}
+                      </p>
+                      <p className="text-[9px] sm:text-[10px]">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full capitalize ${
+                          isAvailable
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100"
+                            : isComingSoon
+                            ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100"
+                            : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {statusLabel}
+                        </span>
                       </p>
                     </Card>
                   </div>

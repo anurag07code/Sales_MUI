@@ -1,18 +1,41 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Upload, Trash2, Loader2, ArrowRight, HardDrive, Cloud, Folder } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Box,
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  CardActionArea,
+  CardActions,
+  IconButton,
+  Button,
+  Chip,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Grid,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from "@mui/material";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import DescriptionIcon from "@mui/icons-material/Description";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import FolderIcon from "@mui/icons-material/Folder";
+import ComputerIcon from "@mui/icons-material/Computer";
+import CircularProgress from "@mui/material/CircularProgress";
 import AIAssistantPanel from "@/components/AIAssistantPanel";
 import { MOCK_RFP_PROJECTS } from "@/lib/mockData";
 import { RFP_RESULT_DATA } from "@/lib/data/rfpResult";
 import { updateJourneyBlocks } from "@/lib/journeyBlocks";
 import { toast } from "sonner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 const RFPLifecycle = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState(MOCK_RFP_PROJECTS);
@@ -255,245 +278,307 @@ const RFPLifecycle = () => {
       timers.forEach(timer => clearTimeout(timer));
     };
   }, [processingProjects]);
-  return <div className="min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-bold mb-2">RFP Lifecycle</h1>
-          <p className="text-muted-foreground">
-            AI-powered analysis and estimation for your proposals
-          </p>
-        </div>
+  return <Box sx={{ minHeight: "100vh", py: 4 }}>
+      <Container maxWidth="lg">
+        <Stack spacing={3}>
+          {/* Header */}
+          <Box>
+            <Typography variant="h4" fontWeight={700} gutterBottom>
+              RFP Lifecycle
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              AI-powered analysis and estimation for your proposals
+            </Typography>
+          </Box>
 
-        <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" className="hidden" onChange={handleFileChange} />
+          <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" style={{ display: "none" }} onChange={handleFileChange} />
 
-        {/* Project Cards List */}
-        <div className="flex flex-col gap-4">
-          {/* Upload New RFP Card - First in List */}
-          <Card className="gradient-card p-6 cursor-pointer transition-all hover:border-foreground/20 hover:shadow-elegant border-dashed border-2" onClick={handleUploadClick}>
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-primary/10">
-                <Upload className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-bold mb-1">Upload New RFP</h2>
-                <p className="text-sm text-muted-foreground">
-                  Click to upload from Google Drive, SharePoint, or Local Drive
-                </p>
-              </div>
-            </div>
+          {/* Upload New RFP Card */}
+          <Card variant="outlined" sx={{ borderStyle: "dashed" }}>
+            <CardActionArea onClick={handleUploadClick} sx={{ p: 3 }}>
+              <Stack direction="row" spacing={2} alignItems="flex-start">
+                <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "primary.main", color: "primary.contrastText", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <UploadFileIcon />
+                </Box>
+                <Box flex={1}>
+                  <Typography variant="h6">Upload New RFP</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Click to upload from Google Drive, SharePoint, or Local Drive
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardActionArea>
           </Card>
 
           {/* Existing Projects */}
-          {projects.map(project => <Card key={project.id} className="gradient-card p-6 cursor-pointer transition-all hover:border-foreground/20 hover:shadow-elegant group" onClick={() => handleProjectClick(project.id)}>
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <FileText className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h2 className="text-xl font-bold truncate">{project.rfpTitle}</h2>
-                    {project.rfpEstimation && <Badge className="bg-primary/10 text-primary border-primary/20">
-                        Analysis Ready
-                      </Badge>}
-                  </div>
-                  <p className="text-sm text-muted-foreground truncate mb-2">
-                    Uploaded: {project.uploadedFileName}
-                  </p>
-                  {processingProjects.has(project.id) ? <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Processing analysis...</span>
-                    </div> : <div className="flex items-center gap-2 text-sm text-primary group-hover:gap-3 transition-all">
-                      <span className="font-medium">View Details</span>
-                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </div>}
-                </div>
-                <Button variant="ghost" size="icon" className="flex-shrink-0 hover:bg-destructive/10 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => {
-              e.stopPropagation();
-              handleDeleteClick(e, project.id);
-            }}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </Card>)}
-        </div>
+          <Stack spacing={2}>
+            {projects.map(project => <Card key={project.id} variant="outlined">
+                <CardActionArea onClick={() => handleProjectClick(project.id)} sx={{ p: 2.5 }}>
+                  <Stack direction="row" spacing={2} alignItems="flex-start">
+                    <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "primary.main", color: "primary.contrastText", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <DescriptionIcon />
+                    </Box>
+                    <Box flex={1} minWidth={0}>
+                      <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
+                        <Typography variant="subtitle1" noWrap>
+                          {project.rfpTitle}
+                        </Typography>
+                        {project.rfpEstimation && <Chip label="Analysis Ready" color="success" size="small" variant="outlined" />}
+                      </Stack>
+                      <Typography variant="body2" color="text.secondary" noWrap>
+                        Uploaded: {project.uploadedFileName}
+                      </Typography>
+                      <Box mt={1}>
+                        {processingProjects.has(project.id) ? <Stack direction="row" spacing={1} alignItems="center" color="text.secondary">
+                            <CircularProgress size={16} />
+                            <Typography variant="body2">Processing analysis...</Typography>
+                          </Stack> : <Stack direction="row" spacing={1} alignItems="center" color="primary.main">
+                            <Typography variant="body2" fontWeight={600}>
+                              View Details
+                            </Typography>
+                            <ArrowForwardIosIcon fontSize="small" />
+                          </Stack>}
+                      </Box>
+                    </Box>
+                    <CardActions sx={{ alignSelf: "center", p: 0 }}>
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleDeleteClick(e, project.id);
+                        }}
+                      >
+                        <DeleteOutlineIcon color="error" />
+                      </IconButton>
+                    </CardActions>
+                  </Stack>
+                </CardActionArea>
+              </Card>)}
 
-        {/* Empty State - When no projects exist */}
-        {projects.length === 0 && <Card className="gradient-card p-12 text-center">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">No projects uploaded yet</p>
-            <Button className="gap-2" onClick={handleUploadClick}>
-              <Upload className="h-4 w-4" />
-              Upload New RFP
-            </Button>
-          </Card>}
-      </div>
+            {/* Empty State - When no projects exist */}
+            {projects.length === 0 && <Card sx={{ p: 4, textAlign: "center" }}>
+                <Box sx={{ mb: 2, display: "flex", justifyContent: "center" }}>
+                  <DescriptionIcon fontSize="large" color="disabled" />
+                </Box>
+                <Typography variant="body1" color="text.secondary" gutterBottom>
+                  No projects uploaded yet
+                </Typography>
+                <Button variant="contained" startIcon={<UploadFileIcon />} onClick={handleUploadClick}>
+                  Upload New RFP
+                </Button>
+              </Card>}
+          </Stack>
+        </Stack>
+      </Container>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Project?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this project? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Delete Project?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Are you sure you want to delete this project? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={handleDeleteConfirm}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Upload Source Dialog */}
-      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Upload RFP Document</DialogTitle>
-            <DialogDescription>
-              Choose your file upload source to upload an RFP document for analysis
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 gap-3 mt-4">
-            {/* Local Drive */}
-            <Card className="p-4 cursor-pointer transition-all hover:border-primary/50 hover:shadow-md border-2" onClick={handleLocalDriveUpload}>
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <HardDrive className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-1">Local Drive</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Upload from your computer
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </Card>
+      <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Upload RFP Document</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            Choose your file upload source to upload an RFP document for analysis.
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Card variant="outlined">
+                <CardActionArea onClick={handleLocalDriveUpload} sx={{ p: 2 }}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "primary.main", color: "primary.contrastText", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <ComputerIcon />
+                    </Box>
+                    <Box flex={1}>
+                      <Typography variant="subtitle1">Local Drive</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Upload from your computer
+                      </Typography>
+                    </Box>
+                    <ArrowForwardIosIcon fontSize="small" color="action" />
+                  </Stack>
+                </CardActionArea>
+              </Card>
+            </Grid>
 
-            {/* Google Drive */}
-            <Card className="p-4 cursor-pointer transition-all hover:border-primary/50 hover:shadow-md border-2" onClick={handleGoogleDriveUpload}>
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Cloud className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-1">Google Drive</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Import from your Google Drive
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </Card>
+            <Grid item xs={12}>
+              <Card variant="outlined">
+                <CardActionArea onClick={handleGoogleDriveUpload} sx={{ p: 2 }}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "primary.main", color: "primary.contrastText", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <CloudUploadIcon />
+                    </Box>
+                    <Box flex={1}>
+                      <Typography variant="subtitle1">Google Drive</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Import from your Google Drive
+                      </Typography>
+                    </Box>
+                    <ArrowForwardIosIcon fontSize="small" color="action" />
+                  </Stack>
+                </CardActionArea>
+              </Card>
+            </Grid>
 
-            {/* MS SharePoint */}
-            <Card className="p-4 cursor-pointer transition-all hover:border-primary/50 hover:shadow-md border-2" onClick={handleSharePointUpload}>
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Folder className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-1">Microsoft SharePoint</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Import from SharePoint
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </Card>
-          </div>
+            <Grid item xs={12}>
+              <Card variant="outlined">
+                <CardActionArea onClick={handleSharePointUpload} sx={{ p: 2 }}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "primary.main", color: "primary.contrastText", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <FolderIcon />
+                    </Box>
+                    <Box flex={1}>
+                      <Typography variant="subtitle1">Microsoft SharePoint</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Import from SharePoint
+                      </Typography>
+                    </Box>
+                    <ArrowForwardIosIcon fontSize="small" color="action" />
+                  </Stack>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          </Grid>
         </DialogContent>
       </Dialog>
 
       {/* RFP Context Dialog */}
-      <Dialog open={contextDialogOpen} onOpenChange={setContextDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>RFP Context</DialogTitle>
-            <DialogDescription>
-              Provide contextual details so the LLM can better understand your RFP.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+      <Dialog open={contextDialogOpen} onClose={() => setContextDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>RFP Context</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            Provide contextual details so the LLM can better understand your RFP.
+          </Typography>
+          <Grid container spacing={2}>
             {/* RFP Type */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">RFP Type</label>
-              <Select value={rfpType} onValueChange={setRfpType}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="renewal">Existing - Renewal</SelectItem>
-                  <SelectItem value="extension">Existing - Extension</SelectItem>
-                  <SelectItem value="change">Existing - Change Request</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="rfp-type-label">RFP Type</InputLabel>
+                <Select
+                  labelId="rfp-type-label"
+                  label="RFP Type"
+                  value={rfpType}
+                  onChange={e => setRfpType(e.target.value)}
+                >
+                  <MenuItem value="new">New</MenuItem>
+                  <MenuItem value="renewal">Existing - Renewal</MenuItem>
+                  <MenuItem value="extension">Existing - Extension</MenuItem>
+                  <MenuItem value="change">Existing - Change Request</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
             {/* Confidentiality */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Confidentiality</label>
-              <Select value={confidentiality} onValueChange={setConfidentiality}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select confidentiality" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-                  <SelectItem value="internal">Internal</SelectItem>
-                  <SelectItem value="confidential">Confidential</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="confidentiality-label">Confidentiality</InputLabel>
+                <Select
+                  labelId="confidentiality-label"
+                  label="Confidentiality"
+                  value={confidentiality}
+                  onChange={e => setConfidentiality(e.target.value)}
+                >
+                  <MenuItem value="public">Public</MenuItem>
+                  <MenuItem value="internal">Internal</MenuItem>
+                  <MenuItem value="confidential">Confidential</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
             {/* Industry */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Industry (Top-level)</label>
-              <Input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g., Banking" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Sub‑industry</label>
-              <Input value={subIndustry} onChange={e => setSubIndustry(e.target.value)} placeholder="e.g., Retail Banking" />
-            </div>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Industry (Top-level)"
+                fullWidth
+                size="small"
+                value={industry}
+                onChange={e => setIndustry(e.target.value)}
+                placeholder="e.g., Banking"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Sub‑industry"
+                fullWidth
+                size="small"
+                value={subIndustry}
+                onChange={e => setSubIndustry(e.target.value)}
+                placeholder="e.g., Retail Banking"
+              />
+            </Grid>
 
             {/* Buyer Context */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Organization Type</label>
-              <Select value={orgType} onValueChange={setOrgType}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select organization type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Gov">Gov</SelectItem>
-                  <SelectItem value="PSU">PSU</SelectItem>
-                  <SelectItem value="Private">Private</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Department</label>
-              <Input value={department} onChange={e => setDepartment(e.target.value)} placeholder="e.g., IT, Procurement" />
-            </div>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="org-type-label">Organization Type</InputLabel>
+                <Select
+                  labelId="org-type-label"
+                  label="Organization Type"
+                  value={orgType}
+                  onChange={e => setOrgType(e.target.value)}
+                >
+                  <MenuItem value="Gov">Gov</MenuItem>
+                  <MenuItem value="PSU">PSU</MenuItem>
+                  <MenuItem value="Private">Private</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Department"
+                fullWidth
+                size="small"
+                value={department}
+                onChange={e => setDepartment(e.target.value)}
+                placeholder="e.g., IT, Procurement"
+              />
+            </Grid>
 
             {/* Dates */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Issue Date</label>
-              <Input type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Submission Deadline</label>
-              <Input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="ghost" onClick={() => setContextDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveContext}>Save</Button>
-          </div>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Issue Date"
+                type="date"
+                fullWidth
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                value={issueDate}
+                onChange={e => setIssueDate(e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Submission Deadline"
+                type="date"
+                fullWidth
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                value={deadline}
+                onChange={e => setDeadline(e.target.value)}
+              />
+            </Grid>
+          </Grid>
         </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setContextDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveContext}>
+            Save
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Floating AI Assistant - Default Variant */}
@@ -502,6 +587,6 @@ const RFPLifecycle = () => {
       rfpTitle: p.rfpTitle,
       uploadedFileName: p.uploadedFileName
     }))} variant="default" />
-    </div>;
+    </Box>;
 };
 export default RFPLifecycle;

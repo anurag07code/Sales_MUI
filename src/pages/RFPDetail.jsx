@@ -1,15 +1,33 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Trash2, FileText, File } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  IconButton,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Menu,
+  MenuItem,
+  Fab,
+  Stack,
+} from "@mui/material";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DownloadIcon from "@mui/icons-material/Download";
+import DescriptionIcon from "@mui/icons-material/Description";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import ArticleIcon from "@mui/icons-material/Article";
 import RFPFlowTimeline from "@/components/RFPFlowTimeline";
 import RFPAnalysisDisplay from "@/components/RFPAnalysisDisplay";
 import AIAssistantPanel from "@/components/AIAssistantPanel";
 import { MOCK_RFP_PROJECTS } from "@/lib/mockData";
 import { toast } from "sonner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useState, useEffect } from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { getJourneyBlocks, updateJourneyBlocks } from "@/lib/journeyBlocks";
 const RFPDetail = () => {
   const {
@@ -17,6 +35,7 @@ const RFPDetail = () => {
   } = useParams();
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [downloadMenuAnchor, setDownloadMenuAnchor] = useState(null);
   const project = MOCK_RFP_PROJECTS.find(p => p.id === id);
   
   // Get journey blocks from localStorage with fallback to project default
@@ -55,14 +74,20 @@ const RFPDetail = () => {
     }
   }, [id, project]);
   if (!project) {
-    return <div className="min-h-screen p-4 sm:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          <Card className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">Project not found</p>
-            <Button onClick={() => navigate("/rfp-lifecycle")}>Back to RFP Lifecycle</Button>
+    return (
+      <Box sx={{ minHeight: "100vh", py: 4 }}>
+        <Container maxWidth="lg">
+          <Card sx={{ p: 4, textAlign: "center" }}>
+            <Typography variant="body1" color="text.secondary" gutterBottom>
+              Project not found
+            </Typography>
+            <Button variant="contained" onClick={() => navigate("/rfp-lifecycle")}>
+              Back to RFP Lifecycle
+            </Button>
           </Card>
-        </div>
-      </div>;
+        </Container>
+      </Box>
+    );
   }
   const handleDelete = () => {
     // In a real app, this would delete from state/API
@@ -116,87 +141,142 @@ const RFPDetail = () => {
     URL.revokeObjectURL(url);
     toast.success(`Downloading ${format.toUpperCase()} summary...`);
   };
-  return <div className="min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header with Back Button and Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/rfp-lifecycle")} className="hover:bg-accent/50">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold">{project.rfpTitle}</h1>
-              <p className="text-sm text-muted-foreground mt-1">{project.uploadedFileName}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteDialogOpen(true)}>
-              <Trash2 className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
+  return (
+    <Box sx={{ minHeight: "100vh", py: 4 }}>
+      <Container maxWidth="lg">
+        <Stack spacing={3}>
+          {/* Header with Back Button and Actions */}
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack direction="row" spacing={2} alignItems="center">
+              <IconButton
+                size="small"
+                onClick={() => navigate("/rfp-lifecycle")}
+              >
+                <ArrowBackIosNewIcon fontSize="small" />
+              </IconButton>
+              <Box>
+                <Typography variant="h5" fontWeight={700}>
+                  {project.rfpTitle}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {project.uploadedFileName}
+                </Typography>
+              </Box>
+            </Stack>
+            <IconButton
+              color="error"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <DeleteOutlineIcon />
+            </IconButton>
+          </Stack>
 
-        {/* Journey Flow - Top Section */}
-        <Card className="p-6 border-2 border-primary/20 bg-card/50 backdrop-blur-sm">
-          <RFPFlowTimeline blocks={journeyBlocks} projectId={id} />
-        </Card>
+          {/* Journey Flow - Top Section */}
+          <Card variant="outlined">
+            <CardContent sx={{ p: 3 }}>
+              <RFPFlowTimeline
+                blocks={journeyBlocks}
+                projectId={id}
+                startFromBlockName="Summary Estimation"
+                hideConnectors={true}
+                useAvailableLabels={true}
+              />
+            </CardContent>
+          </Card>
 
-        {/* RFP Analysis Details - Below Journey Flow */}
-        <div className="mt-6">
-          {project.rfpEstimation ? <RFPAnalysisDisplay data={project.rfpEstimation} fileName={project.uploadedFileName} projectId={project.id} /> : <Card className="p-12 text-center">
-              <p className="text-muted-foreground mb-4">RFP analysis not available yet</p>
-              <p className="text-sm text-muted-foreground">
+          {/* RFP Analysis Details - Below Journey Flow */}
+          {project.rfpEstimation ? (
+            <RFPAnalysisDisplay
+              data={project.rfpEstimation}
+              fileName={project.uploadedFileName}
+              projectId={project.id}
+            />
+          ) : (
+            <Card sx={{ p: 4, textAlign: "center" }}>
+              <Typography variant="body1" color="text.secondary" gutterBottom>
+                RFP analysis not available yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
                 The analysis is being processed. Please check back later.
-              </p>
-            </Card>}
-        </div>
-      </div>
+              </Typography>
+            </Card>
+          )}
+        </Stack>
+      </Container>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Project?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this project? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Delete Project?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Are you sure you want to delete this project? This action cannot be
+            undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleDelete}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Floating AI Assistant with Comparison - Detail Variant */}
-      <AIAssistantPanel projects={MOCK_RFP_PROJECTS.map(p => ({
-      id: p.id,
-      rfpTitle: p.rfpTitle,
-      uploadedFileName: p.uploadedFileName
-    }))} currentProjectId={project.id} showCompare={true} variant="detail" />
+      <AIAssistantPanel
+        projects={MOCK_RFP_PROJECTS.map(p => ({
+          id: p.id,
+          rfpTitle: p.rfpTitle,
+          uploadedFileName: p.uploadedFileName,
+        }))}
+        currentProjectId={project.id}
+        showCompare={true}
+        variant="detail"
+      />
 
-      {/* Floating Download Icon (top-right) with options */}
-      <div className="fixed bottom-24 right-6 z-[940]">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button aria-label="Download summary" title="Download Summary" className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:brightness-110 transition-all border border-primary/30 flex items-center justify-center">
-              <Download className="h-6 w-6" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="mr-2">
-            <DropdownMenuItem onClick={() => downloadSummary("pdf")} className="gap-2 cursor-pointer">
-              <File className="h-4 w-4 text-red-500" />
-              <span>PDF (.pdf)</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => downloadSummary("doc")} className="gap-2 cursor-pointer">
-              <FileText className="h-4 w-4 text-blue-600" />
-              <span>DOC (.doc)</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>;
+      {/* Floating Download FAB with menu */}
+      <Box sx={{ position: "fixed", bottom: 96, right: 24, zIndex: 940 }}>
+        <Fab
+          color="primary"
+          onClick={event => setDownloadMenuAnchor(event.currentTarget)}
+          aria-label="Download summary"
+        >
+          <DownloadIcon />
+        </Fab>
+        <Menu
+          anchorEl={downloadMenuAnchor}
+          open={Boolean(downloadMenuAnchor)}
+          onClose={() => setDownloadMenuAnchor(null)}
+          anchorOrigin={{ vertical: "top", horizontal: "left" }}
+          transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+        >
+          <MenuItem
+            onClick={() => {
+              downloadSummary("pdf");
+              setDownloadMenuAnchor(null);
+            }}
+          >
+            <PictureAsPdfIcon sx={{ mr: 1, color: "error.main" }} fontSize="small" />
+            PDF (.pdf)
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              downloadSummary("doc");
+              setDownloadMenuAnchor(null);
+            }}
+          >
+            <ArticleIcon sx={{ mr: 1, color: "primary.main" }} fontSize="small" />
+            DOC (.doc)
+          </MenuItem>
+        </Menu>
+      </Box>
+    </Box>
+  );
 };
 export default RFPDetail;

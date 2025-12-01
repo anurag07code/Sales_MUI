@@ -1,8 +1,21 @@
 import { useState, useEffect } from "react";
 import { Bot, X, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Box,
+  Fab,
+  IconButton,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Paper,
+  Typography,
+  Button,
+  Stack,
+  useMediaQuery,
+  useTheme
+} from "@mui/material";
 const AIAssistantPanel = ({
   projects = [],
   currentProjectId,
@@ -112,112 +125,280 @@ const AIAssistantPanel = ({
     }, 1000);
   };
   const selectedProject = projects.find(p => p.id === selectedProjectId);
-  return <>
-      {/* Floating Button with Pulse Animation - Green Theme */}
-      <Button size="icon" className={`fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-elegant z-[950] transition-all ${variant === "detail" ? "bg-green-500 hover:bg-green-600 text-white border-2 border-green-400" : "bg-green-500 hover:bg-green-600 text-white"} ${!isOpen ? "animate-pulse" : ""}`} style={{
-      boxShadow: variant === "detail" ? "0 0 20px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15)" : "0 4px 12px rgba(34, 197, 94, 0.4)"
-    }} onClick={() => setIsOpen(!isOpen)} title={isOpen ? "Close AI Assistant" : "Open AI Assistant"}>
-        {isOpen ? <X className="h-6 w-6" /> : <Bot className="h-6 w-6" />}
-      </Button>
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-      {/* Slide-in Panel */}
-      {isOpen && <>
-          {/* Overlay for mobile only - hidden on desktop (md and up) */}
-          <div className="fixed inset-0 bg-black/50 z-[900] block md:hidden" onClick={() => setIsOpen(false)} />
+  return (
+    <>
+      {/* Floating FAB */}
+      <Fab
+        color="success"
+        sx={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          zIndex: 950,
+          boxShadow:
+            variant === "detail"
+              ? "0 0 20px rgba(34, 197, 94, 0.5), 0 4px 12px rgba(0,0,0,0.15)"
+              : "0 4px 12px rgba(34, 197, 94, 0.4)",
+        }}
+        onClick={() => setIsOpen(!isOpen)}
+        title={isOpen ? "Close AI Assistant" : "Open AI Assistant"}
+      >
+        {isOpen ? <X size={20} /> : <Bot size={20} />}
+      </Fab>
 
-          {/* Panel */}
-          <div className="fixed right-4 md:right-[88px] top-6 md:top-24 bottom-4 md:bottom-6 w-[calc(100%-2rem)] md:w-96 rounded-2xl border border-border z-[999] flex flex-col shadow-2xl overflow-hidden" style={{
-        backgroundColor: 'hsl(var(--card))'
-      }}>
+      {/* Slide-in panel */}
+      {isOpen && (
+        <>
+          {/* Mobile overlay */}
+          {isMobile && (
+            <Box
+              sx={{
+                position: "fixed",
+                inset: 0,
+                bgcolor: "rgba(0,0,0,0.5)",
+                zIndex: 900,
+              }}
+              onClick={() => setIsOpen(false)}
+            />
+          )}
+
+          <Paper
+            elevation={6}
+            sx={{
+              position: "fixed",
+              right: isMobile ? 16 : 88,
+              top: isMobile ? 16 : 96,
+              bottom: isMobile ? 16 : 32,
+              width: isMobile ? "calc(100% - 32px)" : 380,
+              borderRadius: 3,
+              display: "flex",
+              flexDirection: "column",
+              zIndex: 999,
+            }}
+          >
             {/* Header */}
-            <div className={`p-4 border-b border-border sticky top-0 z-10 ${variant === "detail" ? "border-green-200" : "border-border"}`} style={{
-          backgroundColor: 'hsl(var(--card))'
-        }}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`p-2 rounded-lg ${variant === "detail" ? "bg-green-100 dark:bg-green-900/30" : "bg-green-100 dark:bg-green-900/30"}`}>
-                  <Bot className={`h-5 w-5 ${variant === "detail" ? "text-green-600 dark:text-green-400" : "text-green-600 dark:text-green-400"}`} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-base">AI Assistant</h3>
-                  <p className="text-xs text-muted-foreground">Always here to help</p>
-                </div>
-                <button aria-label="Close" className="ml-auto h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40" onClick={() => setIsOpen(false)}>
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
+            <Box
+              sx={{
+                p: 2,
+                borderBottom: `1px solid ${
+                  variant === "detail"
+                    ? theme.palette.success.light
+                    : theme.palette.divider
+                }`,
+              }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box
+                  sx={{
+                    p: 1,
+                    borderRadius: 2,
+                    bgcolor: theme.palette.success.light + "33",
+                  }}
+                >
+                  <Bot
+                    size={18}
+                    color={theme.palette.success.main}
+                  />
+                </Box>
+                <Box flex={1}>
+                  <Typography variant="subtitle1" fontWeight={700}>
+                    AI Assistant
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Always here to help
+                  </Typography>
+                </Box>
+                <IconButton
+                  size="small"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Close"
+                >
+                  <X size={16} />
+                </IconButton>
+              </Stack>
 
-              {/* Document Selection */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Choose RFP Document</label>
-                <Select value={selectedProjectId} onValueChange={handleProjectChange}>
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Select an RFP to chat about">
-                      {selectedProject ? selectedProject.rfpTitle : "Select an RFP to chat about"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map(project => <SelectItem key={project.id} value={project.id}>
+              {/* Document selection */}
+              <Box mt={2}>
+                <Typography variant="caption" display="block" gutterBottom>
+                  Choose RFP Document
+                </Typography>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="ai-rfp-select-label">
+                    Select an RFP to chat about
+                  </InputLabel>
+                  <Select
+                    labelId="ai-rfp-select-label"
+                    label="Select an RFP to chat about"
+                    value={selectedProjectId}
+                    onChange={e => handleProjectChange(e.target.value)}
+                  >
+                    {projects.map(project => (
+                      <MenuItem key={project.id} value={project.id}>
                         {project.rfpTitle}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-            </div>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
 
-              {/* Compare Option (revealed by button) */}
-              {showCompare && projects.length > 1 && <div className="space-y-2 mt-3">
-                  {!compareOpen ? <Button size="sm" variant="outline" className="w-full border-green-300 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20" onClick={() => setCompareOpen(true)}>
+              {/* Compare option */}
+              {showCompare && projects.length > 1 && (
+                <Box mt={2}>
+                  {!compareOpen ? (
+                    <Button
+                      fullWidth
+                      size="small"
+                      variant="outlined"
+                      color="success"
+                      onClick={() => setCompareOpen(true)}
+                    >
                       Enable comparison
-              </Button> : <>
-                      <label className="text-sm font-medium text-foreground">Compare with another RFP (Optional)</label>
-                      <Select value={compareProjectId || "none"} onValueChange={value => setCompareProjectId(value === "none" ? "" : value)}>
-                        <SelectTrigger className="w-full bg-background">
-                          <SelectValue placeholder="Select RFP to compare">
-                            {compareProjectId ? projects.find(p => p.id === compareProjectId)?.rfpTitle : "Select RFP to compare"}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          {projects.filter(p => p.id !== selectedProjectId).map(project => <SelectItem key={project.id} value={project.id}>
+                    </Button>
+                  ) : (
+                    <>
+                      <Typography
+                        variant="caption"
+                        display="block"
+                        gutterBottom
+                      >
+                        Compare with another RFP (Optional)
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <InputLabel id="ai-compare-select-label">
+                          Select RFP to compare
+                        </InputLabel>
+                        <Select
+                          labelId="ai-compare-select-label"
+                          label="Select RFP to compare"
+                          value={compareProjectId || "none"}
+                          onChange={e =>
+                            setCompareProjectId(
+                              e.target.value === "none" ? "" : e.target.value
+                            )
+                          }
+                        >
+                          <MenuItem value="none">None</MenuItem>
+                          {projects
+                            .filter(p => p.id !== selectedProjectId)
+                            .map(project => (
+                              <MenuItem key={project.id} value={project.id}>
                                 {project.rfpTitle}
-                              </SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </>}
-                </div>}
-            </div>
+                              </MenuItem>
+                            ))}
+                        </Select>
+                      </FormControl>
+                    </>
+                  )}
+                </Box>
+              )}
+            </Box>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{
-          backgroundColor: 'hsl(var(--background))'
-        }}>
-              {messages.map((msg, index) => <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] p-3 rounded-lg ${msg.role === "user" ? variant === "detail" ? "bg-green-500 text-white" : "bg-green-500 text-white" : "bg-muted/50 text-foreground"}`}>
-                    <p className="text-sm leading-relaxed">{msg.content}</p>
-                  </div>
-                </div>)}
-            </div>
+            <Box
+              sx={{
+                flex: 1,
+                p: 2,
+                overflowY: "auto",
+                bgcolor: "background.default",
+              }}
+            >
+              <Stack spacing={1.5}>
+                {messages.map((msg, index) => (
+                  <Stack
+                    key={index}
+                    direction="row"
+                    justifyContent={
+                      msg.role === "user" ? "flex-end" : "flex-start"
+                    }
+                  >
+                    <Box
+                      sx={{
+                        maxWidth: "85%",
+                        px: 1.5,
+                        py: 1,
+                        borderRadius: 2,
+                        bgcolor:
+                          msg.role === "user"
+                            ? theme.palette.success.main
+                            : theme.palette.grey[100],
+                        color:
+                          msg.role === "user"
+                            ? "#fff"
+                            : theme.palette.text.primary,
+                      }}
+                    >
+                      <Typography variant="body2">{msg.content}</Typography>
+                    </Box>
+                  </Stack>
+                ))}
+              </Stack>
+            </Box>
 
             {/* Input */}
-            <div className="p-4 border-t border-border" style={{
-          backgroundColor: 'hsl(var(--card))'
-        }}>
-              <div className="flex gap-2">
-                <Input placeholder="Ask me anything..." value={message} onChange={e => setMessage(e.target.value)} onKeyPress={e => e.key === "Enter" && handleSend()} className="bg-background" />
-                <Button onClick={handleSend} size="icon" className={`${variant === "detail" ? "bg-green-500 hover:bg-green-600 text-white" : "bg-green-500 hover:bg-green-600 text-white"}`}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </>}
+            <Box
+              sx={{
+                p: 2,
+                borderTop: `1px solid ${theme.palette.divider}`,
+                bgcolor: "background.paper",
+              }}
+            >
+              <Stack direction="row" spacing={1}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Ask me anything..."
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                />
+                <IconButton
+                  color="success"
+                  onClick={handleSend}
+                  sx={{
+                    bgcolor: theme.palette.success.main,
+                    color: "#fff",
+                    "&:hover": { bgcolor: theme.palette.success.dark },
+                  }}
+                >
+                  <Send size={18} />
+                </IconButton>
+              </Stack>
+            </Box>
+          </Paper>
+        </>
+      )}
 
       {/* Nudge tooltip when closed */}
-      {!isOpen && showNudge && <div className="fixed bottom-8 right-24 z-[945]">
-          <div className="relative px-3 py-2 rounded-lg bg-card border border-border shadow-md text-sm">
-            <span className="text-foreground">Hi! Ask about this RFP</span>
-            <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-card border border-border rotate-45" />
-          </div>
-        </div>}
-    </>;
+      {!isOpen && showNudge && (
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: 32,
+            right: 120,
+            zIndex: 945,
+          }}
+        >
+          <Paper
+            elevation={3}
+            sx={{
+              px: 1.5,
+              py: 1,
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="caption">Hi! Ask about this RFP</Typography>
+          </Paper>
+        </Box>
+      )}
+    </>
+  );
 };
 export default AIAssistantPanel;
