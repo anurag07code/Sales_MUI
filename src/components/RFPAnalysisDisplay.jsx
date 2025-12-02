@@ -1,10 +1,24 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  Badge,
+  TextField,
+  Button,
+  IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Tabs,
+  Tab,
+  Typography,
+  Box,
+  Grid,
+  Chip,
+  Stack,
+  useTheme,
+  alpha
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Building2, DollarSign, Calendar, Users, Code, FileText, Shield, Target, CheckCircle2, Clock, BarChart3, Briefcase, ArrowRight, ListChecks, Sparkles, Zap, Layers, CheckSquare, RefreshCw, Network, Server, Database, Lock, Cpu, Pencil, Check, X, Plus, Search } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -159,120 +173,236 @@ const RFPAnalysisDisplay = ({
             </div>)}
         </div>}
     </Card>;
-  return <div className="space-y-6">
+  const theme = useTheme();
+  
+  return <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Header */}
-      {fileName && <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <FileText className="h-5 w-5 text-primary" />
-            <h2 className="text-2xl font-bold">{fileName}</h2>
-          </div>
-          <p className="text-muted-foreground">RFP Analysis & Estimation Results</p>
-        </div>}
+      {fileName && <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <FileText size={20} style={{ color: theme.palette.primary.main }} />
+            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+              {fileName}
+            </Typography>
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            RFP Analysis & Estimation Results
+          </Typography>
+        </Box>}
 
       {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Grid container spacing={2}>
         {data.estimation && <>
-            <Card className="p-4 border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Efforts</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatEffort(data.estimation.totalEfforts || 0)} hrs
-                  </p>
-                </div>
-                <BarChart3 className="h-8 w-8 text-primary/40" />
-              </div>
-            </Card>
-            <Card className="p-4 border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Build Efforts</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatEffort(data.estimation.build || 0)} hrs
-                  </p>
-                </div>
-                <Code className="h-8 w-8 text-primary/40" />
-              </div>
-            </Card>
-            <Card className="p-4 border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Project Management</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatEffort(data.estimation.projectManagement || 0)} hrs
-                  </p>
-                </div>
-                <Briefcase className="h-8 w-8 text-primary/40" />
-              </div>
-            </Card>
-            <Card className="p-4 border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Support</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatEffort(data.estimation.support || 0)} hrs
-                  </p>
-                </div>
-                <Users className="h-8 w-8 text-primary/40" />
-              </div>
-            </Card>
+            <Grid item xs={12} sm={6} lg={3}>
+              <Card 
+                sx={{ 
+                  p: 2, 
+                  border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  '&:hover': {
+                    borderColor: alpha(theme.palette.primary.main, 0.4)
+                  },
+                  transition: 'border-color 0.3s'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Total Efforts
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {formatEffort(data.estimation.totalEfforts || 0)} hrs
+                    </Typography>
+                  </Box>
+                  <BarChart3 size={32} style={{ color: alpha(theme.palette.primary.main, 0.4) }} />
+                </Box>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={3}>
+              <Card 
+                sx={{ 
+                  p: 2, 
+                  border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  '&:hover': {
+                    borderColor: alpha(theme.palette.primary.main, 0.4)
+                  },
+                  transition: 'border-color 0.3s'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Build Efforts
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {formatEffort(data.estimation.build || 0)} hrs
+                    </Typography>
+                  </Box>
+                  <Code size={32} style={{ color: alpha(theme.palette.primary.main, 0.4) }} />
+                </Box>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={3}>
+              <Card 
+                sx={{ 
+                  p: 2, 
+                  border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  '&:hover': {
+                    borderColor: alpha(theme.palette.primary.main, 0.4)
+                  },
+                  transition: 'border-color 0.3s'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Project Management
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {formatEffort(data.estimation.projectManagement || 0)} hrs
+                    </Typography>
+                  </Box>
+                  <Briefcase size={32} style={{ color: alpha(theme.palette.primary.main, 0.4) }} />
+                </Box>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={3}>
+              <Card 
+                sx={{ 
+                  p: 2, 
+                  border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  '&:hover': {
+                    borderColor: alpha(theme.palette.primary.main, 0.4)
+                  },
+                  transition: 'border-color 0.3s'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Support
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {formatEffort(data.estimation.support || 0)} hrs
+                    </Typography>
+                  </Box>
+                  <Users size={32} style={{ color: alpha(theme.palette.primary.main, 0.4) }} />
+                </Box>
+              </Card>
+            </Grid>
           </>}
-      </div>
+      </Grid>
 
       {/* Complexity Scores section removed per request */}
 
       {/* Timeline */}
-      {data.timeLine && <Card className="p-6">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            Timeline
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(data.timeLine).map(([key, value]) => <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <span className="text-sm font-medium text-muted-foreground capitalize">
-                  {key.replace(/_/g, " ")}
-                </span>
-                <Badge variant="outline" className="font-semibold">
-                  {value}
-                </Badge>
-              </div>)}
-          </div>
-        </Card>}
+      {data.timeLine && (
+        <Card sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Calendar size={20} style={{ color: theme.palette.primary.main }} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              Timeline
+            </Typography>
+          </Box>
+          <Grid container spacing={2}>
+            {Object.entries(data.timeLine).map(([key, value]) => (
+              <Grid item xs={12} md={6} key={key}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    p: 1.5,
+                    borderRadius: 1,
+                    bgcolor: theme.palette.mode === 'dark' 
+                      ? alpha(theme.palette.grey[800], 0.3)
+                      : alpha(theme.palette.grey[200], 0.3)
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
+                    {key.replace(/_/g, " ")}
+                  </Typography>
+                  <Chip label={value} variant="outlined" sx={{ fontWeight: 'bold' }} />
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Card>
+      )}
 
       {/* Main Accordion Sections */}
-      <Accordion type="multiple" className="space-y-3">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* Purpose */}
-        {localData.purpose && <AccordionItem value="purpose" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <Target className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Purpose</span>
-                  <div className="ml-auto">
-                    <Button variant="ghost" size="sm" onClick={e => {
+        {localData.purpose && (
+          <Accordion
+            sx={{
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              '&:hover': {
+                borderColor: alpha(theme.palette.primary.main, 0.4)
+              },
+              transition: 'border-color 0.3s',
+              '&:before': { display: 'none' }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05)
+                },
+                '& .MuiAccordionSummary-content': {
+                  alignItems: 'center',
+                  gap: 1.5
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+                  boxShadow: 1
+                }}
+              >
+                <Target size={20} style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                Purpose
+              </Typography>
+              <Button
+                variant="text"
+                size="small"
+                onClick={e => {
                   e.stopPropagation();
                   openSectionEditor("purpose");
-                }} className="gap-1 text-xs">
-                      <Pencil className="h-3.5 w-3.5" /> Edit
+                }}
+                sx={{ gap: 0.5, fontSize: '0.75rem' }}
+              >
+                <Pencil size={14} /> Edit
+              </Button>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 3, pb: 3 }}>
+              {editingSection === "purpose" && (
+                <Box sx={{ mb: 2, p: 1.5, borderRadius: 1, border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}` }}>
+                  <TextField
+                    multiline
+                    rows={6}
+                    value={sectionDraft}
+                    onChange={e => setSectionDraft(e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                    <Button variant="text" size="small" onClick={() => setEditingSection(null)}>
+                      <X size={16} style={{ marginRight: 4 }} /> Cancel
                     </Button>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                {editingSection === "purpose" && <div className="mb-4 p-3 rounded-md border border-primary/20 bg-card">
-                    <Textarea value={sectionDraft} onChange={e => setSectionDraft(e.target.value)} rows={6} />
-                    <div className="flex justify-end gap-2 mt-2">
-                      <Button variant="ghost" size="sm" onClick={() => setEditingSection(null)}>
-                        <X className="h-4 w-4 mr-1" /> Cancel
-                      </Button>
-                      <Button size="sm" onClick={saveSectionEditor}>
-                        <Check className="h-4 w-4 mr-1" /> Save
-                      </Button>
-                    </div>
-                  </div>}
-                <div className="space-y-4 pt-2">
+                    <Button size="small" onClick={saveSectionEditor}>
+                      <Check size={16} style={{ marginRight: 4 }} /> Save
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
                   {(() => {
                 const sections = formatTextContent(localData.purpose) || [];
                 // Filter out duplicate headings and track the first visible paragraph
@@ -297,158 +427,377 @@ const RFPAnalysisDisplay = ({
                 }
                 return filteredSections.map((section, idx) => {
                   if (section.type === 'heading') {
-                    return <div key={idx} className="flex items-center gap-2 mb-3 mt-4 first:mt-0">
-                            <Sparkles className="h-4 w-4 text-primary flex-shrink-0" />
-                            <h4 className="font-bold text-base text-primary border-b-2 border-primary/30 pb-1 flex-1">
-                              {section.content}
-                            </h4>
-                          </div>;
+                    return (
+                      <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, mt: idx === 0 ? 0 : 2 }}>
+                        <Sparkles size={16} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 'bold',
+                            color: 'primary.main',
+                            borderBottom: `2px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                            pb: 0.5,
+                            flex: 1
+                          }}
+                        >
+                          {section.content}
+                        </Typography>
+                      </Box>
+                    );
                   }
                   if (section.type === 'list') {
                     const items = section.content.split('\n').filter(item => item.trim());
-                    return <div key={idx} className="space-y-2.5 pl-2">
-                            {items.map((item, itemIdx) => {
-                        const cleanItem = item.replace(/^(?:\d+[\.)]\s*|[•\-\*]\s*|\.\s*|\)\s*)/, '').trim();
-                        return <div key={itemIdx} className="flex items-start gap-3 group">
-                                  <div className="mt-1.5 p-1 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                                    <CheckCircle2 className="h-3 w-3 text-primary flex-shrink-0" />
-                                  </div>
-                                  <p className="text-sm text-foreground leading-relaxed flex-1 pt-0.5">
-                                    {cleanItem}
-                                  </p>
-                                </div>;
-                      })}
-                          </div>;
+                    return (
+                      <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, pl: 1 }}>
+                        {items.map((item, itemIdx) => {
+                          const cleanItem = item.replace(/^(?:\d+[\.)]\s*|[•\-\*]\s*|\.\s*|\)\s*)/, '').trim();
+                          return (
+                            <Box key={itemIdx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                              <Box
+                                sx={{
+                                  mt: 0.75,
+                                  p: 0.5,
+                                  borderRadius: '50%',
+                                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                  '&:hover': {
+                                    bgcolor: alpha(theme.palette.primary.main, 0.2)
+                                  },
+                                  transition: 'background-color 0.3s'
+                                }}
+                              >
+                                <CheckCircle2 size={12} style={{ color: theme.palette.primary.main }} />
+                              </Box>
+                              <Typography variant="body2" sx={{ flex: 1, pt: 0.25, lineHeight: 1.75 }}>
+                                {cleanItem}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    );
                   }
                   // First paragraph gets special treatment with box and shadow - different color (not blue)
                   if (idx === firstParagraphIdx) {
-                    return <div key={idx} className="p-4 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30 border-2 border-border shadow-md">
-                            <p className="text-sm font-semibold text-foreground leading-relaxed">
-                              {section.content}
-                            </p>
-                          </div>;
+                    return (
+                      <Box
+                        key={idx}
+                        sx={{
+                          p: 2,
+                          borderRadius: 1,
+                          background: theme.palette.mode === 'dark'
+                            ? `linear-gradient(to bottom right, ${alpha(theme.palette.grey[800], 0.5)}, ${alpha(theme.palette.grey[800], 0.3)})`
+                            : `linear-gradient(to bottom right, ${alpha(theme.palette.grey[200], 0.5)}, ${alpha(theme.palette.grey[200], 0.3)})`,
+                          border: `2px solid ${theme.palette.divider}`,
+                          boxShadow: 2
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.75 }}>
+                          {section.content}
+                        </Typography>
+                      </Box>
+                    );
                   }
-                  return <div key={idx} className="p-4 rounded-lg bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border-l-4 border-primary/30">
-                          <p className="text-sm text-foreground leading-relaxed">
-                            {section.content.replace(/^\.\s*/, "")}
-                          </p>
-                        </div>;
+                  return (
+                    <Box
+                      key={idx}
+                      sx={{
+                        p: 2,
+                        borderRadius: 1,
+                        background: `linear-gradient(to right, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.primary.main, 0.03)}, transparent)`,
+                        borderLeft: `4px solid ${alpha(theme.palette.primary.main, 0.3)}`
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ lineHeight: 1.75 }}>
+                        {section.content.replace(/^\.\s*/, "")}
+                      </Typography>
+                    </Box>
+                  );
                 });
               })()}
-                </div>
-              </AccordionContent>
-            </Card>
-          </AccordionItem>}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        )}
 
         {/* Scope of Work */}
-        {localData.scopeOfWork && <AccordionItem value="scope" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Scope of Work</span>
-                  <div className="ml-auto">
-                    <Button variant="ghost" size="sm" onClick={e => {
+        {localData.scopeOfWork && (
+          <Accordion
+            sx={{
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              '&:hover': {
+                borderColor: alpha(theme.palette.primary.main, 0.4)
+              },
+              transition: 'border-color 0.3s',
+              '&:before': { display: 'none' }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05)
+                },
+                '& .MuiAccordionSummary-content': {
+                  alignItems: 'center',
+                  gap: 1.5
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+                  boxShadow: 1
+                }}
+              >
+                <FileText size={20} style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                Scope of Work
+              </Typography>
+              <Button
+                variant="text"
+                size="small"
+                onClick={e => {
                   e.stopPropagation();
                   openSectionEditor("scopeOfWork");
-                }} className="gap-1 text-xs">
-                      <Pencil className="h-3.5 w-3.5" /> Edit
+                }}
+                sx={{ gap: 0.5, fontSize: '0.75rem' }}
+              >
+                <Pencil size={14} /> Edit
+              </Button>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 3, pb: 3 }}>
+              {editingSection === "scopeOfWork" && (
+                <Box sx={{ mb: 2, p: 1.5, borderRadius: 1, border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}` }}>
+                  <TextField
+                    multiline
+                    rows={6}
+                    value={sectionDraft}
+                    onChange={e => setSectionDraft(e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                    <Button variant="text" size="small" onClick={() => setEditingSection(null)}>
+                      <X size={16} style={{ marginRight: 4 }} /> Cancel
                     </Button>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                {editingSection === "scopeOfWork" && <div className="mb-4 p-3 rounded-md border border-primary/20 bg-card">
-                    <Textarea value={sectionDraft} onChange={e => setSectionDraft(e.target.value)} rows={6} />
-                    <div className="flex justify-end gap-2 mt-2">
-                      <Button variant="ghost" size="sm" onClick={() => setEditingSection(null)}>
-                        <X className="h-4 w-4 mr-1" /> Cancel
-                      </Button>
-                      <Button size="sm" onClick={saveSectionEditor}>
-                        <Check className="h-4 w-4 mr-1" /> Save
-                      </Button>
-                    </div>
-                  </div>}
-                <div className="space-y-4 pt-2">
-                  {formatTextContent(localData.scopeOfWork)?.map((section, idx) => {
-                if (section.type === 'heading') {
-                  return <div key={idx} className="flex items-center gap-2 mb-3 mt-4 first:mt-0">
-                          <Zap className="h-4 w-4 text-primary flex-shrink-0" />
-                          <h4 className="font-bold text-base text-primary border-b-2 border-primary/30 pb-1 flex-1">
-                            {section.content}
-                          </h4>
-                        </div>;
-                }
-                if (section.type === 'list') {
-                  const items = section.content.split('\n').filter(item => item.trim());
-                  return <div key={idx} className="space-y-2.5 pl-2">
-                          {items.map((item, itemIdx) => {
-                      const cleanItem = item.replace(/^(?:\d+[\.)]\s*|[•\-\*]\s*|\.\s*|\)\s*)/, '').trim();
-                      return <div key={itemIdx} className="flex items-start gap-3 group">
-                                <div className="mt-1.5 p-1 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                                  <ListChecks className="h-3 w-3 text-primary flex-shrink-0" />
-                                </div>
-                                <p className="text-sm text-foreground leading-relaxed flex-1 pt-0.5">
-                                  {cleanItem}
-                                </p>
-                              </div>;
-                    })}
-                        </div>;
-                }
-                return <div key={idx} className="p-4 rounded-lg bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border-l-4 border-primary/30">
-                        <p className="text-sm text-foreground leading-relaxed">
+                    <Button size="small" onClick={saveSectionEditor}>
+                      <Check size={16} style={{ marginRight: 4 }} /> Save
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+                {formatTextContent(localData.scopeOfWork)?.map((section, idx) => {
+                  if (section.type === 'heading') {
+                    return (
+                      <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, mt: idx === 0 ? 0 : 2 }}>
+                        <Zap size={16} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 'bold',
+                            color: 'primary.main',
+                            borderBottom: `2px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                            pb: 0.5,
+                            flex: 1
+                          }}
+                        >
                           {section.content}
-                        </p>
-                      </div>;
-              })}
-                </div>
-              </AccordionContent>
-            </Card>
-          </AccordionItem>}
+                        </Typography>
+                      </Box>
+                    );
+                  }
+                  if (section.type === 'list') {
+                    const items = section.content.split('\n').filter(item => item.trim());
+                    return (
+                      <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, pl: 1 }}>
+                        {items.map((item, itemIdx) => {
+                          const cleanItem = item.replace(/^(?:\d+[\.)]\s*|[•\-\*]\s*|\.\s*|\)\s*)/, '').trim();
+                          return (
+                            <Box key={itemIdx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                              <Box
+                                sx={{
+                                  mt: 0.75,
+                                  p: 0.5,
+                                  borderRadius: '50%',
+                                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                  '&:hover': {
+                                    bgcolor: alpha(theme.palette.primary.main, 0.2)
+                                  },
+                                  transition: 'background-color 0.3s'
+                                }}
+                              >
+                                <ListChecks size={12} style={{ color: theme.palette.primary.main }} />
+                              </Box>
+                              <Typography variant="body2" sx={{ flex: 1, pt: 0.25, lineHeight: 1.75 }}>
+                                {cleanItem}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    );
+                  }
+                  return (
+                    <Box
+                      key={idx}
+                      sx={{
+                        p: 2,
+                        borderRadius: 1,
+                        background: `linear-gradient(to right, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.primary.main, 0.03)}, transparent)`,
+                        borderLeft: `4px solid ${alpha(theme.palette.primary.main, 0.3)}`
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ lineHeight: 1.75 }}>
+                        {section.content}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        )}
 
         {/* Estimation & Roles */}
-        {localData.estimation?.rolesAndEfforts && <AccordionItem value="estimation" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Estimation & Roles</span>
-                  <span className="ml-auto text-xs text-primary font-semibold bg-primary/10 px-2 py-1 rounded-full">
-                    {Object.keys(data.estimation.rolesAndEfforts).length} roles
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-2">
-                  {Object.entries(localData.estimation.rolesAndEfforts).sort(([, a], [, b]) => (b || 0) - (a || 0)).map(([role, hours], idx) => <div key={role} className="flex flex-col p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="w-6 h-6 rounded-full bg-primary/30 flex items-center justify-center text-xs font-bold text-primary group-hover:bg-primary/40 transition-colors flex-shrink-0">
+        {localData.estimation?.rolesAndEfforts && (
+          <Accordion
+            sx={{
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              '&:hover': {
+                borderColor: alpha(theme.palette.primary.main, 0.4)
+              },
+              transition: 'border-color 0.3s',
+              '&:before': { display: 'none' }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05)
+                },
+                '& .MuiAccordionSummary-content': {
+                  alignItems: 'center',
+                  gap: 1.5
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+                  boxShadow: 1
+                }}
+              >
+                <Users size={20} style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                Estimation & Roles
+              </Typography>
+              <Chip
+                label={`${Object.keys(data.estimation.rolesAndEfforts).length} roles`}
+                size="small"
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  fontSize: '0.75rem'
+                }}
+              />
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 3, pb: 3 }}>
+              <Grid container spacing={1.5} sx={{ pt: 1 }}>
+                {Object.entries(localData.estimation.rolesAndEfforts)
+                  .sort(([, a], [, b]) => (b || 0) - (a || 0))
+                  .map(([role, hours], idx) => (
+                    <Grid item xs={6} sm={4} lg={3} key={role}>
+                      <Card
+                        sx={{
+                          p: 1.5,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.primary.main, 0.05)})`,
+                          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                          '&:hover': {
+                            borderColor: alpha(theme.palette.primary.main, 0.4),
+                            boxShadow: 3
+                          },
+                          transition: 'all 0.3s',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Box
+                            sx={{
+                              width: 24,
+                              height: 24,
+                              borderRadius: '50%',
+                              bgcolor: alpha(theme.palette.primary.main, 0.3),
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.75rem',
+                              fontWeight: 'bold',
+                              color: 'primary.main',
+                              '&:hover': {
+                                bgcolor: alpha(theme.palette.primary.main, 0.4)
+                              },
+                              transition: 'background-color 0.3s',
+                              flexShrink: 0
+                            }}
+                          >
                             {idx + 1}
-                          </div>
-                          <InlineHoursEditor value={Number(hours) || 0} onChange={newHours => setLocalData(prev => ({
-                    ...prev,
-                    estimation: {
-                      ...prev.estimation,
-                      rolesAndEfforts: {
-                        ...prev.estimation.rolesAndEfforts,
-                        [role]: newHours
-                      }
-                    }
-                  }))} />
-                        </div>
-                        <p className="font-semibold text-sm text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                          </Box>
+                          <InlineHoursEditor
+                            value={Number(hours) || 0}
+                            onChange={newHours => setLocalData(prev => ({
+                              ...prev,
+                              estimation: {
+                                ...prev.estimation,
+                                rolesAndEfforts: {
+                                  ...prev.estimation.rolesAndEfforts,
+                                  [role]: newHours
+                                }
+                              }
+                            }))}
+                          />
+                        </Box>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 600,
+                            lineHeight: 1.2,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            '&:hover': {
+                              color: 'primary.main'
+                            },
+                            transition: 'color 0.3s'
+                          }}
+                        >
                           {role}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">hours</p>
-                      </div>)}
-                </div>
-              </AccordionContent>
-            </Card>
-          </AccordionItem>}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                          hours
+                        </Typography>
+                      </Card>
+                    </Grid>
+                  ))}
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+        )}
 
         {/* Technical Architecture */}
         {localData.technicalArchitecture && <AccordionItem value="tech-arch" className="border-none">
@@ -1044,13 +1393,12 @@ const RFPAnalysisDisplay = ({
           </AccordionItem>}
 
         {/* Top Keywords section removed per request */}
-      </Accordion>
+      </Box>
 
       {/* Submit Button to Move to Response Writeup */}
-      <div className="mt-6 flex justify-end">
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
         <Button 
-          size="lg" 
-          className="gap-2"
+          size="large" 
           onClick={() => {
             if (projectId) {
               // Update journey blocks: mark Summary Estimation as completed and Response Writeup as in-progress
@@ -1072,12 +1420,13 @@ const RFPAnalysisDisplay = ({
               navigate(`/rfp-lifecycle/${projectId}/response-writeup`);
             }
           }}
+          sx={{ gap: 1 }}
         >
           Submit & Continue to Response Writeup
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight size={16} />
         </Button>
-      </div>
-    </div>;
+      </Box>
+    </Box>;
 };
 export default RFPAnalysisDisplay;
 

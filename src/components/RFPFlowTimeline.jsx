@@ -1,8 +1,19 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as icons from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  Typography,
+  Box,
+  Chip,
+  useTheme,
+  alpha
+} from "@mui/material";
 const RFPFlowTimeline = ({
   blocks,
   projectId,
@@ -15,55 +26,47 @@ const RFPFlowTimeline = ({
   const actualProjectId = projectId || params?.id;
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const theme = useTheme();
+  
   const getStatusBg = status => {
     switch (status) {
       case "completed":
-        return "bg-primary/20";
-      // pale blue for completed
+        return alpha(theme.palette.primary.main, 0.2);
       case "in-progress":
-        return "bg-primary glow-primary";
-      // solid blue for processing
+        return theme.palette.primary.main;
       case "pending":
-        return "bg-muted";
+        return theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200];
       default:
-        return "bg-muted";
+        return theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200];
     }
   };
   const getIconColor = status => {
     switch (status) {
       case "completed":
-        return "text-primary";
-      // blue icon on pale blue
+        return theme.palette.primary.main;
       case "in-progress":
-        return "text-white";
-      // white on solid blue
+        return theme.palette.primary.contrastText;
       default:
-        return "text-foreground";
-      // solid contrast in both themes
+        return theme.palette.text.primary;
     }
   };
-  const getRingClass = status => {
+  const getRingColor = status => {
     if (status === "pending") {
-      return "ring-2 ring-border"; // subtle outline for visibility
+      return theme.palette.divider;
     }
-    if (status === "completed") {
-      return "ring-2 ring-primary/40"; // soft blue outline on pale blue
+    if (status === "completed" || status === "in-progress") {
+      return alpha(theme.palette.primary.main, 0.4);
     }
-    if (status === "in-progress") {
-      return "ring-2 ring-primary/40"; // soft blue outline
-    }
-    return "";
+    return "transparent";
   };
   const getConnectorColor = status => {
     switch (status) {
       case "completed":
-        return "bg-primary/40";
-      // pale blue connector
+        return alpha(theme.palette.primary.main, 0.4);
       case "in-progress":
-        return "bg-primary";
-      // solid blue
+        return theme.palette.primary.main;
       default:
-        return "bg-border";
+        return theme.palette.divider;
     }
   };
   const handleBlockClick = block => {
@@ -232,79 +235,183 @@ const RFPFlowTimeline = ({
 
     return result;
   })();
-  return <>
-      <div className="w-full">
-        <h2 className="text-xl font-bold mb-6">RFP Journey Flow</h2>
+  return (
+    <>
+      <Box sx={{ width: '100%' }}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 3 }}>
+          RFP Journey Flow
+        </Typography>
         
         {/* Horizontal Container - No Scroll, All Steps Visible */}
-        <div className="w-full relative">
+        <Box sx={{ width: '100%', position: 'relative' }}>
           {/* Responsive grid: compact on mobile, expanded on md+ */}
-          <div className="grid grid-cols-5 md:grid-cols-10 gap-2 relative">
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: 'repeat(5, 1fr)', md: 'repeat(10, 1fr)' },
+              gap: 1,
+              position: 'relative'
+            }}
+          >
             {displayBlocks.map((block, index) => {
-            const IconComponent = icons[getIconName(block)];
-            const isLast = index === displayBlocks.length - 1;
-            const displayName = block.name === "Summary Estimation" ? "Understanding RFP Document" : block.name;
-            const statusLabel = useAvailableLabels ? block.name === "Summary Estimation" || block.name === "Response Writeup" ? "Available" : "Coming soon" : block.status.replace("-", " ");
-            const isAvailable = statusLabel === "Available";
-            const isComingSoon = statusLabel === "Coming soon";
-            return <div key={index} className="relative">
+              const IconComponent = icons[getIconName(block)];
+              const isLast = index === displayBlocks.length - 1;
+              const displayName = block.name === "Summary Estimation" ? "Understanding RFP Document" : block.name;
+              const statusLabel = useAvailableLabels 
+                ? (block.name === "Summary Estimation" || block.name === "Response Writeup" 
+                    ? "Available" 
+                    : "Coming soon")
+                : block.status.replace("-", " ");
+              const isAvailable = statusLabel === "Available";
+              const isComingSoon = statusLabel === "Coming soon";
+              const borderColor = block.status === "completed" 
+                ? alpha(theme.palette.primary.main, 0.6)
+                : block.status === "in-progress"
+                ? theme.palette.primary.main
+                : theme.palette.divider;
+              
+              return (
+                <Box key={index} sx={{ position: 'relative' }}>
                   {/* Main Block */}
-                  <div className="flex flex-col items-center cursor-pointer group w-full" onClick={() => handleBlockClick(block)}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      width: '100%',
+                      '&:hover .icon-circle': {
+                        transform: 'scale(1.1)'
+                      }
+                    }}
+                    onClick={() => handleBlockClick(block)}
+                  >
                     {/* Icon Circle */}
-                    <div className={`relative z-10 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full ${getStatusBg(block.status)} ${getRingClass(block.status)} transition-all duration-300 group-hover:scale-110 shadow-lg mx-auto`}>
-                      {IconComponent && <IconComponent className={`h-4 w-4 sm:h-5 sm:w-5 ${getIconColor(block.status)}`} />}
-                    </div>
+                    <Box
+                      className="icon-circle"
+                      sx={{
+                        position: 'relative',
+                        zIndex: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: { xs: 40, sm: 48 },
+                        height: { xs: 40, sm: 48 },
+                        borderRadius: '50%',
+                        bgcolor: getStatusBg(block.status),
+                        border: `2px solid ${getRingColor(block.status)}`,
+                        transition: 'all 0.3s',
+                        boxShadow: theme.shadows[4],
+                        mx: 'auto'
+                      }}
+                    >
+                      {IconComponent && (
+                        <IconComponent
+                          size={theme.breakpoints.down('sm') ? 16 : 20}
+                          style={{ color: getIconColor(block.status) }}
+                        />
+                      )}
+                    </Box>
                     
                     {/* Optional horizontal connector line to next block */}
-                    {!hideConnectors && !isLast && <div className="absolute top-5 sm:top-6 z-0" style={{
-                  left: 'calc(50% + 1.25rem)',
-                  // start after current circle radius (w-10 => 2.5rem => 1.25rem radius)
-                  width: 'calc(100% - 2.5rem)'
-                  // stop before the next circle radius to leave a gap
-                }}>
-                        <div className={`h-0.5 w-full ${getConnectorColor(block.status)} transition-all duration-300`} />
-                      </div>}
+                    {!hideConnectors && !isLast && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: { xs: 20, sm: 24 },
+                          zIndex: 0,
+                          left: 'calc(50% + 1.25rem)',
+                          width: 'calc(100% - 2.5rem)',
+                          height: 2,
+                          bgcolor: getConnectorColor(block.status),
+                          transition: 'all 0.3s'
+                        }}
+                      />
+                    )}
                     
                     {/* Card with Name and Status */}
-                    <Card className={`mt-3 sm:mt-4 p-2 sm:p-3 w-full text-center gradient-card border-t-2 transition-all group-hover:shadow-elegant ${block.status === "completed" ? "border-t-primary/60" : block.status === "in-progress" ? "border-t-primary" : "border-t-border"}`}>
-                      <p className="font-medium text-[10px] sm:text-xs mb-1 line-clamp-2 leading-tight">
-                        {displayName}
-                      </p>
-                      <p className="text-[9px] sm:text-[10px]">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full capitalize ${
-                          isAvailable
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100"
-                            : isComingSoon
-                            ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100"
-                            : "bg-muted text-muted-foreground"
-                          }`}
+                    <Card
+                      sx={{
+                        mt: { xs: 1.5, sm: 2 },
+                        p: { xs: 1, sm: 1.5 },
+                        width: '100%',
+                        textAlign: 'center',
+                        borderTop: `2px solid ${borderColor}`,
+                        transition: 'all 0.3s',
+                        '&:hover': {
+                          boxShadow: theme.shadows[6]
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: '8px !important' }}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 500,
+                            fontSize: { xs: '10px', sm: '12px' },
+                            mb: 0.5,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            lineHeight: 1.2
+                          }}
                         >
-                          {statusLabel}
-                        </span>
-                      </p>
+                          {displayName}
+                        </Typography>
+                        <Box>
+                          <Chip
+                            label={statusLabel}
+                            size="small"
+                            sx={{
+                              height: 20,
+                              fontSize: { xs: '9px', sm: '10px' },
+                              bgcolor: isAvailable
+                                ? alpha(theme.palette.success.main, 0.1)
+                                : isComingSoon
+                                ? alpha(theme.palette.warning.main, 0.1)
+                                : theme.palette.mode === 'dark' 
+                                  ? theme.palette.grey[800] 
+                                  : theme.palette.grey[200],
+                              color: isAvailable
+                                ? theme.palette.success.dark
+                                : isComingSoon
+                                ? theme.palette.warning.dark
+                                : theme.palette.text.secondary,
+                              '& .MuiChip-label': {
+                                px: 1,
+                                py: 0.25
+                              }
+                            }}
+                          />
+                        </Box>
+                      </CardContent>
                     </Card>
-                  </div>
-                </div>;
-          })}
-          </div>
-        </div>
-      </div>
+                  </Box>
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      </Box>
 
       {/* Block Details Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          {selectedBlock && <>
-              <DialogHeader>
-                <DialogTitle>{getBlockDetails(selectedBlock).title}</DialogTitle>
-                <DialogDescription>{getBlockDetails(selectedBlock).description}</DialogDescription>
-              </DialogHeader>
-              <div className="mt-4">
-                <p className="text-sm leading-relaxed">{getBlockDetails(selectedBlock).content}</p>
-              </div>
-            </>}
-        </DialogContent>
+      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)} maxWidth="sm" fullWidth>
+        {selectedBlock && (
+          <>
+            <DialogTitle>{getBlockDetails(selectedBlock).title}</DialogTitle>
+            <DialogContent>
+              <DialogContentText sx={{ mb: 2 }}>
+                {getBlockDetails(selectedBlock).description}
+              </DialogContentText>
+              <Typography variant="body2" sx={{ lineHeight: 1.75 }}>
+                {getBlockDetails(selectedBlock).content}
+              </Typography>
+            </DialogContent>
+          </>
+        )}
       </Dialog>
-    </>;
+    </>
+  );
 };
 export default RFPFlowTimeline;

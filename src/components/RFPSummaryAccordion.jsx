@@ -1,45 +1,133 @@
+import React, { useState } from "react";
 import * as icons from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Card } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Card,
+  Typography,
+  Box,
+  Chip,
+  useTheme,
+  alpha
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+
 const RFPSummaryAccordion = ({
   tabs
 }) => {
-  return <div className="space-y-4">
-      <h2 className="text-xl font-bold mb-4">RFP Summary</h2>
+  const theme = useTheme();
+  const [expanded, setExpanded] = useState(`item-0`);
+
+  const handleChange = (panel) => (event, isExpanded) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
+        RFP Summary
+      </Typography>
       
-      <Accordion type="single" collapsible defaultValue="item-0" className="space-y-3">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {tabs.map((tab, index) => {
-        const IconComponent = icons[tab.icon];
-        return <AccordionItem key={index} value={`item-${index}`} className="border-none">
-              <Card className="gradient-card overflow-hidden">
-                <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3 flex-1">
-                    {IconComponent && <div className="p-2 rounded-lg bg-primary/10">
-                        <IconComponent className="h-5 w-5 text-primary" />
-                      </div>}
-                    <span className="font-bold text-left">{tab.title}</span>
-                    <span className="ml-auto text-xs text-muted-foreground font-normal">
-                      ({tab.sections.length})
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                
-                <AccordionContent className="px-6 pb-4">
-                  <div className="space-y-4 pt-2">
-                    {tab.sections.map((section, sectionIndex) => <div key={sectionIndex} className="p-4 rounded-lg bg-muted/30 border border-border">
-                        <h4 className="font-semibold mb-2 text-primary">
-                          {section.heading}
-                        </h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {section.content}
-                        </p>
-                      </div>)}
-                  </div>
-                </AccordionContent>
-              </Card>
-            </AccordionItem>;
-      })}
-      </Accordion>
-    </div>;
+          const IconComponent = icons[tab.icon];
+          const panelId = `item-${index}`;
+          const isExpanded = expanded === panelId;
+          
+          return (
+            <Accordion
+              key={index}
+              expanded={isExpanded}
+              onChange={handleChange(panelId)}
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                '&:before': { display: 'none' },
+                boxShadow: 1
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  px: 3,
+                  py: 2,
+                  '&:hover': {
+                    bgcolor: theme.palette.mode === 'dark' 
+                      ? alpha(theme.palette.grey[800], 0.5)
+                      : alpha(theme.palette.grey[200], 0.5)
+                  },
+                  transition: 'background-color 0.3s',
+                  '& .MuiAccordionSummary-content': {
+                    alignItems: 'center',
+                    gap: 1.5
+                  }
+                }}
+              >
+                {IconComponent && (
+                  <Box
+                    sx={{
+                      p: 1,
+                      borderRadius: 1,
+                      bgcolor: alpha(theme.palette.primary.main, 0.1)
+                    }}
+                  >
+                    <IconComponent size={20} style={{ color: theme.palette.primary.main }} />
+                  </Box>
+                )}
+                <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                  {tab.title}
+                </Typography>
+                <Chip
+                  label={`(${tab.sections.length})`}
+                  size="small"
+                  sx={{
+                    fontSize: '0.75rem',
+                    height: 20,
+                    bgcolor: 'transparent',
+                    color: 'text.secondary'
+                  }}
+                />
+              </AccordionSummary>
+              
+              <AccordionDetails sx={{ px: 3, pb: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+                  {tab.sections.map((section, sectionIndex) => (
+                    <Card
+                      key={sectionIndex}
+                      sx={{
+                        p: 2,
+                        bgcolor: theme.palette.mode === 'dark'
+                          ? alpha(theme.palette.grey[800], 0.3)
+                          : alpha(theme.palette.grey[200], 0.3),
+                        border: `1px solid ${theme.palette.divider}`
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 600,
+                          mb: 1,
+                          color: 'primary.main'
+                        }}
+                      >
+                        {section.heading}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ lineHeight: 1.75 }}
+                      >
+                        {section.content}
+                      </Typography>
+                    </Card>
+                  ))}
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          );
+        })}
+      </Box>
+    </Box>
+  );
 };
 export default RFPSummaryAccordion;
