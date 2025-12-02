@@ -800,18 +800,47 @@ const RFPAnalysisDisplay = ({
         )}
 
         {/* Technical Architecture */}
-        {localData.technicalArchitecture && <AccordionItem value="tech-arch" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <Building2 className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Technical Architecture</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="space-y-5 pt-2">
+        {localData.technicalArchitecture && (
+          <Accordion
+            sx={{
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              '&:hover': {
+                borderColor: alpha(theme.palette.primary.main, 0.4)
+              },
+              transition: 'border-color 0.3s',
+              '&:before': { display: 'none' }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05)
+                },
+                '& .MuiAccordionSummary-content': {
+                  alignItems: 'center',
+                  gap: 1.5
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+                  boxShadow: 1
+                }}
+              >
+                <Building2 size={20} style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                Technical Architecture
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 3, pb: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
                   {localData.technicalArchitecture.technicalArchitectureOverview && <div className="p-5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/20 shadow-sm">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="h-4 w-4 text-primary" />
@@ -938,24 +967,53 @@ const RFPAnalysisDisplay = ({
                         {localData.technicalArchitecture.conclusion}
                       </p>
                     </div>}
-                </div>
-              </AccordionContent>
-            </Card>
-          </AccordionItem>}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        )}
 
         {/* Business Architecture */}
-        {localData.businessArchitecture && <AccordionItem value="business-arch" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <Briefcase className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Business Architecture</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="space-y-5 pt-2">
+        {localData.businessArchitecture && (
+          <Accordion
+            sx={{
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              '&:hover': {
+                borderColor: alpha(theme.palette.primary.main, 0.4)
+              },
+              transition: 'border-color 0.3s',
+              '&:before': { display: 'none' }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05)
+                },
+                '& .MuiAccordionSummary-content': {
+                  alignItems: 'center',
+                  gap: 1.5
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+                  boxShadow: 1
+                }}
+              >
+                <Briefcase size={20} style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                Business Architecture
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 3, pb: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
                   {localData.businessArchitecture.businessArchitectureOverview && <div className="p-5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/20 shadow-sm">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="h-4 w-4 text-primary" />
@@ -1018,27 +1076,63 @@ const RFPAnalysisDisplay = ({
                         </div>
                       </div>
                     </div>}
-                </div>
-              </AccordionContent>
-            </Card>
-          </AccordionItem>}
+                </Box>
+            </AccordionDetails>
+          </Accordion>
+        )}
 
         {/* Solution Timeline */}
-        {localData.solutionTimeline?.timelines && <AccordionItem value="timeline" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <Calendar className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Solution Timeline</span>
-                  <span className="ml-auto text-xs text-primary font-semibold bg-primary/10 px-2 py-1 rounded-full">
-                    {data.solutionTimeline.timelines.length} phases
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="space-y-5 pt-2">
+        {localData.solutionTimeline?.timelines && (
+          <Accordion
+            sx={{
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              '&:hover': {
+                borderColor: alpha(theme.palette.primary.main, 0.4)
+              },
+              transition: 'border-color 0.3s',
+              '&:before': { display: 'none' }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05)
+                },
+                '& .MuiAccordionSummary-content': {
+                  alignItems: 'center',
+                  gap: 1.5
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+                  boxShadow: 1
+                }}
+              >
+                <Calendar size={20} style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                Solution Timeline
+              </Typography>
+              <Chip
+                label={`${data.solutionTimeline.timelines.length} phases`}
+                size="small"
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  fontSize: '0.75rem'
+                }}
+              />
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 3, pb: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
                   {localData.solutionTimeline.timelineOverview && <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border-l-4 border-primary/30">
                       <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="h-4 w-4 text-primary" />
@@ -1081,26 +1175,62 @@ const RFPAnalysisDisplay = ({
                           </div>
                         </div>)}
                     </div>)}
-                </div>
-              </AccordionContent>
-            </Card>
-          </AccordionItem>}
+                </Box>
+            </AccordionDetails>
+          </Accordion>
+        )}
 
         {/* Software & Tools */}
-        {localData.softwareAndTools && Object.keys(localData.softwareAndTools).length > 0 && <AccordionItem value="tools" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <Code className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Software & Tools</span>
-                  <span className="ml-auto text-xs text-primary font-semibold bg-primary/10 px-2 py-1 rounded-full">
-                    {Object.keys(localData.softwareAndTools).length} tools
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
+        {localData.softwareAndTools && Object.keys(localData.softwareAndTools).length > 0 && (
+          <Accordion
+            sx={{
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              '&:hover': {
+                borderColor: alpha(theme.palette.primary.main, 0.4)
+              },
+              transition: 'border-color 0.3s',
+              '&:before': { display: 'none' }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05)
+                },
+                '& .MuiAccordionSummary-content': {
+                  alignItems: 'center',
+                  gap: 1.5
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+                  boxShadow: 1
+                }}
+              >
+                <Code size={20} style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                Software & Tools
+              </Typography>
+              <Chip
+                label={`${Object.keys(localData.softwareAndTools).length} tools`}
+                size="small"
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  fontSize: '0.75rem'
+                }}
+              />
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 3, pb: 3 }}>
                 {/* Actions Row */}
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                   <Button size="sm" variant="outline" className="gap-2 h-9 px-4" onClick={() => {
@@ -1252,30 +1382,61 @@ const RFPAnalysisDisplay = ({
                   </div> : renderSelectedToolsBox()}
 
                 {/* Removed old flat selected list per new partitioned design */}
-              </AccordionContent>
-            </Card>
-          </AccordionItem>}
+            </AccordionDetails>
+          </Accordion>
+        )}
 
         {/* Key Requirements */}
-        {localData.keyRequirements && <AccordionItem value="requirements" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Key Requirements</span>
-                  <div className="ml-auto">
-                    <Button variant="ghost" size="sm" onClick={e => {
+        {localData.keyRequirements && (
+          <Accordion
+            sx={{
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              '&:hover': {
+                borderColor: alpha(theme.palette.primary.main, 0.4)
+              },
+              transition: 'border-color 0.3s',
+              '&:before': { display: 'none' }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05)
+                },
+                '& .MuiAccordionSummary-content': {
+                  alignItems: 'center',
+                  gap: 1.5
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+                  boxShadow: 1
+                }}
+              >
+                <CheckCircle2 size={20} style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                Key Requirements
+              </Typography>
+              <Button
+                size="small"
+                onClick={(e) => {
                   e.stopPropagation();
                   openSectionEditor("keyRequirements");
-                }} className="gap-1 text-xs">
-                      <Pencil className="h-3.5 w-3.5" /> Edit
-                    </Button>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
+                }}
+                sx={{ minWidth: 'auto', fontSize: '0.75rem' }}
+              >
+                <Pencil size={14} style={{ marginRight: 4 }} /> Edit
+              </Button>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 3, pb: 3 }}>
                 {editingSection === "keyRequirements" && <div className="mb-4 p-3 rounded-md border border-primary/20 bg-card">
                     <Textarea value={sectionDraft} onChange={e => setSectionDraft(e.target.value)} rows={6} />
                     <div className="flex justify-end gap-2 mt-2">
@@ -1287,7 +1448,7 @@ const RFPAnalysisDisplay = ({
                       </Button>
                     </div>
                   </div>}
-                <div className="space-y-4 pt-2">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
                   {formatTextContent(localData.keyRequirements)?.map((section, idx) => {
                 if (section.type === 'heading') {
                   return <div key={idx} className="flex items-center gap-2 mb-3 mt-4 first:mt-0">
@@ -1319,31 +1480,62 @@ const RFPAnalysisDisplay = ({
                         </p>
                       </div>;
               })}
-                </div>
-              </AccordionContent>
-            </Card>
-          </AccordionItem>}
+                </Box>
+            </AccordionDetails>
+          </Accordion>
+        )}
 
         {/* Payment Terms */}
-        {localData.paymentTerms && <AccordionItem value="payment" className="border-none">
-            <Card className="gradient-card overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                    <DollarSign className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-bold text-left text-lg">Payment Terms</span>
-                  <div className="ml-auto">
-                    <Button variant="ghost" size="sm" onClick={e => {
+        {localData.paymentTerms && (
+          <Accordion
+            sx={{
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              '&:hover': {
+                borderColor: alpha(theme.palette.primary.main, 0.4)
+              },
+              transition: 'border-color 0.3s',
+              '&:before': { display: 'none' }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.05)
+                },
+                '& .MuiAccordionSummary-content': {
+                  alignItems: 'center',
+                  gap: 1.5
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+                  boxShadow: 1
+                }}
+              >
+                <DollarSign size={20} style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', flex: 1 }}>
+                Payment Terms
+              </Typography>
+              <Button
+                size="small"
+                onClick={(e) => {
                   e.stopPropagation();
                   openSectionEditor("paymentTerms");
-                }} className="gap-1 text-xs">
-                      <Pencil className="h-3.5 w-3.5" /> Edit
-                    </Button>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
+                }}
+                sx={{ minWidth: 'auto', fontSize: '0.75rem' }}
+              >
+                <Pencil size={14} style={{ marginRight: 4 }} /> Edit
+              </Button>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 3, pb: 3 }}>
                 {editingSection === "paymentTerms" && <div className="mb-4 p-3 rounded-md border border-primary/20 bg-card">
                     <Textarea value={sectionDraft} onChange={e => setSectionDraft(e.target.value)} rows={6} />
                     <div className="flex justify-end gap-2 mt-2">
@@ -1355,7 +1547,7 @@ const RFPAnalysisDisplay = ({
                       </Button>
                     </div>
                   </div>}
-                <div className="space-y-4 pt-2">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
                   {formatTextContent(localData.paymentTerms)?.map((section, idx) => {
                 if (section.type === 'heading') {
                   return <div key={idx} className="flex items-center gap-2 mb-3 mt-4 first:mt-0">
@@ -1387,10 +1579,10 @@ const RFPAnalysisDisplay = ({
                         </p>
                       </div>;
               })}
-                </div>
-              </AccordionContent>
-            </Card>
-          </AccordionItem>}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        )}
 
         {/* Top Keywords section removed per request */}
       </Box>
